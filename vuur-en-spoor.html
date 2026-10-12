@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head>
+<body>
+<title>Vuur &amp; Spoor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: scene as the hero of a two-column workbench (simulatie links, taalspiegel rechts), leerkrachtdeel eronder */
+:root{
+  --bg:#ECEEE7; --panel:#F8F9F4; --sunk:#E2E6DC; --ink:#1D231F; --muted:#59645B; --line:#C9D0C3;
+  --ochre:#9A6412; --ochre-soft:#F1E2C4; --moss:#3F6131; --moss-soft:#DCE8D2;
+  --ember:#B5400F; --ember-soft:#F6DCCD; --sky:#2F5E7A; --sky-soft:#D5E4EC;
+  --f-display:"Young Serif", Georgia, "Times New Roman", serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", Verdana, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141916; --panel:#1C2420; --sunk:#111613; --ink:#E7EBE3; --muted:#9BA79C; --line:#33413A;
+  --ochre:#E2A64A; --ochre-soft:#3A2D18; --moss:#93BC77; --moss-soft:#22311D;
+  --ember:#F2804E; --ember-soft:#3D2015; --sky:#8CC0DE; --sky-soft:#18303D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141916; --panel:#1C2420; --sunk:#111613; --ink:#E7EBE3; --muted:#9BA79C; --line:#33413A;
+  --ochre:#E2A64A; --ochre-soft:#3A2D18; --moss:#93BC77; --moss-soft:#22311D;
+  --ember:#F2804E; --ember-soft:#3D2015; --sky:#8CC0DE; --sky-soft:#18303D; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:18px 48px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.7rem,3.4vw,2.4rem)}
+h2{font-size:1.3rem}
+h3{font-size:1.05rem}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+button,select,textarea,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ochre);outline-offset:2px}
+
+header.top{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:end;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.brand p{margin:.25rem 0 0;color:var(--muted);max-width:60ch}
+nav.missies{display:flex;flex-wrap:wrap;gap:6px}
+nav.missies button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:.4rem .85rem;cursor:pointer;display:flex;gap:.45rem;align-items:baseline}
+nav.missies button .n{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+nav.missies button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav.missies button[aria-pressed="true"] .n{color:var(--bg);opacity:.75}
+
+.bench{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:22px;margin-top:18px}
+@media (max-width:900px){.bench{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+.scene{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:#2b3a33}
+.scene canvas{display:block;width:100%;height:auto;aspect-ratio:960/420;max-width:100%}
+.clock{position:absolute;top:10px;right:10px;font-family:var(--f-mono);font-size:.75rem;background:rgba(15,20,17,.72);color:#EDE6D3;padding:.25rem .55rem;border-radius:6px}
+.legend{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;max-width:70%}
+.legend span{font-size:.75rem;background:rgba(15,20,17,.72);color:#EDE6D3;border-radius:6px;padding:.15rem .5rem}
+
+.mission{display:grid;gap:6px}
+.mission p{margin:0;max-width:68ch}
+.twist{border-left:3px solid var(--ochre);background:var(--ochre-soft);padding:.6rem .8rem;border-radius:0 8px 8px 0}
+.twist[hidden]{display:none}
+
+.writer label{display:block;font-weight:700;margin-bottom:6px}
+.writer textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);padding:.75rem .85rem;font-size:1.05rem;line-height:1.45}
+.writer .hint{font-size:.85rem;color:var(--muted);margin:.35rem 0 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.small{padding:.3rem .65rem;font-size:.85rem;font-weight:400}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.panel h2{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.panel h2 small{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+ol.log{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:260px;overflow:auto}
+ol.log li{display:grid;grid-template-columns:3.2rem 1fr;gap:8px;font-size:.95rem}
+ol.log .t{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);padding-top:.15rem;font-variant-numeric:tabular-nums}
+ol.log li.fout .x{color:var(--ember)}
+ol.log li.goed .x{color:var(--moss)}
+.empty{color:var(--muted);font-style:italic;margin:0}
+
+.outcome{margin-top:10px;padding:.6rem .8rem;border-radius:8px;font-weight:700}
+.outcome.ok{background:var(--moss-soft);color:var(--moss)}
+.outcome.nee{background:var(--ember-soft);color:var(--ember)}
+.outcome.open{background:var(--sky-soft);color:var(--sky)}
+
+ul.mirror{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+ul.mirror li{display:grid;gap:3px;padding-left:12px;border-left:3px solid var(--line)}
+ul.mirror li[data-soort="anachronisme"],ul.mirror li[data-soort="letterlijk"],ul.mirror li[data-soort="gevaar"]{border-left-color:var(--ember)}
+ul.mirror li[data-soort="vaag"],ul.mirror li[data-soort="wie"],ul.mirror li[data-soort="waarheen"],ul.mirror li[data-soort="incompleet"],ul.mirror li[data-soort="onbekend"],ul.mirror li[data-soort="vergeten"]{border-left-color:var(--ochre)}
+ul.mirror li[data-soort="sterk"]{border-left-color:var(--moss)}
+.tag{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+q.cite{font-style:italic;quotes:"‘" "’"}
+.reflect{margin:12px 0 0;font-family:var(--f-display);font-size:1.05rem;color:var(--ochre)}
+
+.genai .qs{display:grid;gap:10px;margin:8px 0}
+.genai .q{background:var(--sky-soft);border-radius:8px;padding:.55rem .75rem}
+.genai .q .tag{color:var(--sky)}
+.chat{display:grid;gap:6px;margin-top:8px}
+.chat .me{justify-self:end;background:var(--sunk);border-radius:8px;padding:.4rem .65rem;max-width:90%}
+.chat .ai{background:var(--sky-soft);border-radius:8px;padding:.4rem .65rem;max-width:90%}
+.chatform{display:flex;gap:6px;margin-top:8px}
+.chatform input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:.45rem .6rem}
+.note{font-size:.85rem;color:var(--muted);margin:.4rem 0 0}
+
+.rubric{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.rubric span{border:1px solid var(--line);border-radius:999px;padding:.2rem .65rem;font-size:.85rem;color:var(--muted)}
+.rubric span.ja{background:var(--moss-soft);border-color:transparent;color:var(--moss);font-weight:700}
+
+section.teacher{margin-top:34px;border-top:1px solid var(--line);padding-top:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+@media (max-width:900px){section.teacher{grid-template-columns:minmax(0,1fr)}}
+.teacher ol.fasen{margin:.4rem 0 0;padding-left:1.2rem;display:grid;gap:8px;max-width:65ch}
+.teacher ol.fasen b{font-weight:700}
+table.tries{width:100%;border-collapse:collapse;font-size:.88rem}
+table.tries th,table.tries td{text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--line);vertical-align:top}
+table.tries th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.tablewrap{overflow-x:auto;max-height:320px;overflow-y:auto}
+.pill{display:inline-block;border-radius:999px;padding:.05rem .5rem;font-size:.75rem;font-weight:700}
+.pill.ok{background:var(--moss-soft);color:var(--moss)}
+.pill.nee{background:var(--ember-soft);color:var(--ember)}
+.pill.open{background:var(--sky-soft);color:var(--sky)}
+details summary{cursor:pointer;font-weight:700}
+footer{margin-top:30px;color:var(--muted);font-size:.85rem;max-width:75ch}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Taalsimulatie · groep 7–8</div>
+      <h1>Vuur &amp; Spoor</h1>
+      <p>Schrijf instructies voor een stam jagers en verzamelaars. Zij antwoorden niet met woorden, maar met gedrag. Wat je schrijft, gebeurt, en het gebeurt letterlijk.</p>
+    </div>
+    <nav class="missies" id="missies" aria-label="Missies"></nav>
+  </header>
+
+  <div class="bench">
+    <div class="col">
+      <div class="scene">
+        <canvas id="cv" width="960" height="420" aria-label="De wereld van de stam: kamp, bos, rivier, bessenstruik, spoor en heuvel"></canvas>
+        <div class="legend" id="legend"></div>
+        <div class="clock" id="clock">tijd 0</div>
+      </div>
+
+      <div class="mission">
+        <div class="eyebrow" id="mNr">Missie 1</div>
+        <h2 id="mTitel"></h2>
+        <p id="mOpdracht"></p>
+        <div class="twist" id="twist" hidden></div>
+      </div>
+
+      <div class="writer">
+        <label for="instr">Jouw instructie aan de stam</label>
+        <textarea id="instr" spellcheck="true"></textarea>
+        <p class="hint" id="hint">De stam: <b>Oka</b> (jager, heeft een speer), <b>Mira</b> (verzamelaar, heeft een mand) en <b>Tuk</b> (kind). Ze kennen alleen woorden uit hun eigen wereld.</p>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="play">Speel af</button>
+          <button class="btn ghost" id="reset">Wereld opnieuw</button>
+          <button class="btn ghost" id="twistBtn">Nieuwe wending</button>
+          <span class="note" id="status" aria-live="polite"></span>
+        </div>
+        <div id="rubricBox" hidden>
+          <p class="note" style="margin-top:12px"><b>Checklist eindproduct</b>: wat staat er al in je tekst?</p>
+          <div class="rubric" id="rubric"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="panel">
+        <h2>Wat er gebeurde <small>gedrag</small></h2>
+        <ol class="log" id="log"></ol>
+        <div id="outcome"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Taalspiegel <small>wat zei je eigenlijk?</small></h2>
+        <ul class="mirror" id="mirror"><li class="empty" style="border:0;padding:0">Speel een instructie af. Hier verschijnt welke woorden werkten en welke niet.</li></ul>
+        <p class="reflect" id="reflect" hidden>Wat zei je eigenlijk, en wat bedoelde je?</p>
+      </div>
+
+      <div class="panel genai" id="genai">
+        <h2>Taal op taal <small>GenAI</small></h2>
+        <p class="note" id="genaiIntro" style="margin-top:0">De simulatie laat zien wat je woorden doen. GenAI vraagt terug: het bevraagt je woorden, maar schrijft je tekst niet voor je.</p>
+        <div class="row"><button class="btn small" id="askAI" disabled>Vraag terug</button><button class="btn ghost small" id="stopAI" hidden>Stop</button></div>
+        <div class="qs" id="qs"></div>
+        <div class="chat" id="chat"></div>
+        <form class="chatform" id="chatform" hidden>
+          <input id="chatIn" autocomplete="off" placeholder="Antwoord op de vraag…" aria-label="Jouw antwoord">
+          <button class="btn small" type="submit">Stuur</button>
+        </form>
+        <p class="note" id="aiNote"></p>
+      </div>
+    </div>
+  </div>
+
+  <section class="teacher" aria-label="Voor de leerkracht">
+    <div>
+      <div class="eyebrow">Voor de leerkracht</div>
+      <h2 style="margin:.2rem 0 .4rem">Lesverloop</h2>
+      <ol class="fasen">
+        <li><b>Eerste pogingen.</b> Laat leerlingen kort en snel schrijven, zoals ze praten. Laat de fouten gebeuren: een fabriek die niet bestaat, vuur dat je niet kunt pakken, een jager die alleen blijft kijken.</li>
+        <li><b>Kantelen.</b> Buig frustratie om naar reflectie: van ‘hij begrijpt me niet’ naar ‘wat zei ik eigenlijk, en wat bedoelde ik?’. Gebruik de taalspiegel als gespreksstarter, niet als cijfer.</li>
+        <li><b>Inferenties.</b> Missie 2 draait om kennis plus waarneming. Water in de pootafdruk betekent hier: het regent, de rivier gaat stijgen. Wie dat afleidt, schrijft een voorwaarde of keert op tijd om.</li>
+        <li><b>Vergeten personages.</b> In missie 3 loopt Tuk mee als niemand Tuk iets opdraagt. Wie de hele groep in de tekst meeneemt, voorkomt het misverstand.</li>
+        <li><b>Eindproduct.</b> De eindopdracht vraagt een uitgebreide prompt: personages, handelingen, tijd, plaats, volgorde, voorwaarden en onderbouwing. Schrijf zo dat er precies gebeurt wat jij beoogt.</li>
+      </ol>
+      <details style="margin-top:14px">
+        <summary>Gespreksvragen bij de taalspiegel</summary>
+        <ul style="max-width:65ch">
+          <li>Welk woord deed iets anders dan je verwachtte? Waarom?</li>
+          <li>Wat weet jij dat de stam niet kan weten?</li>
+          <li>Wie moest iets doen? Stond dat er?</li>
+          <li>Wat moet er eerst kloppen voordat iemand iets doet?</li>
+          <li>Vergelijk twee teksten die allebei werkten. Welke is preciezer?</li>
+        </ul>
+      </details>
+      <details style="margin-top:8px">
+        <summary>Hoe reageert de stam?</summary>
+        <p style="max-width:65ch">De simulatie leest werkwoorden (loop, pak, breng, verzamel, volg, jaag, kijk, wacht, eet), plekken (kamp, bos, rivier, struik, spoor, heuvel, vuur), personages, volgordewoorden (eerst, daarna, dan) en voorwaarden (als …, dan …). Woorden die in de prehistorie niet bestaan (fabriek, auto, aansteker, telefoon) maken de stam verward. Elke stap kost één tijdseenheid. De regels zijn vast, zodat leerlingen kunnen ontdekken hoe hun taal werkt. De GenAI-laag geeft daarbovenop taal terug.</p>
+      </details>
+    </div>
+    <div>
+      <div class="row" style="justify-content:space-between">
+        <h2>Pogingen in deze les</h2>
+        <div class="row"><button class="btn ghost small" id="copyLog">Kopieer alles</button><button class="btn ghost small" id="clearLog">Wis lijst</button></div>
+      </div>
+      <p class="note" id="copyNote" style="margin-top:0">Blijft alleen in deze browser bewaard.</p>
+      <div class="tablewrap"><table class="tries"><thead><tr><th>#</th><th>Missie</th><th>Tekst</th><th>Uitkomst</th><th>Spiegel</th></tr></thead><tbody id="tries"></tbody></table></div>
+      <textarea id="copyFallback" hidden readonly style="width:100%;min-height:120px;margin-top:8px"></textarea>
+    </div>
+  </section>
+
+  <footer>Gebaseerd op het idee van Geert Vermeegen (CED-Groep): AI niet als leverancier van antwoorden, maar als bron van frictie. Taal is geen venster, maar gereedschap.</footer>
+</div>
+
+<script>
+document.documentElement.lang = 'nl';
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------- Wereld ---------------- */
+const P = {
+  kamp:{x:118,y:338,label:'kamp'}, bos:{x:238,y:300,label:'bos'}, rivier:{x:318,y:350,label:'rivier'},
+  struiken:{x:470,y:318,label:'struik'}, spoor:{x:560,y:362,label:'spoor'}, spoorEind:{x:688,y:350,label:'spoor'},
+  heuvel:{x:712,y:212,label:'heuvel'}, vuurRand:{x:782,y:236,label:'vuur'}, vuur:{x:832,y:246,label:'vuur'}
+};
+const RIVER_X = 352; // links = kampkant, rechts = overkant
+const ACT = ['oka','mira','tuk'];
+const NAME = {oka:'Oka', mira:'Mira', tuk:'Tuk'};
+const OFF = {oka:{x:-34,y:0}, mira:{x:0,y:6}, tuk:{x:32,y:12}};
+
+const SCEN = {
+  rook:{nr:1,titel:'Rook achter de heuvel',
+    opdracht:'Achter de heuvel stijgt rook op. Het vuur in het kamp is gisteren uitgegaan en de stam heeft het koud. Zorg dat er weer vuur in het kamp brandt, zonder dat iemand gewond raakt.',
+    voorbeeld:'Ga niet naar de rook, dat is gevaarlijk, het is een fabriek.',
+    f:{smoke:true,fire:true,berries:false,tracks:false,flood:false},
+    feiten:['rook','vuur','brand','heet','warm','bliksem','vlam'],
+    twists:['Het vuur is heilig voor de buurstam. Zij laten niemand zomaar iets meenemen. Wat verandert er aan je instructie?','De wind draait. De rook drijft nu naar het kamp toe.','Tuk is bang voor vuur en wil niet mee. Mag Tuk dan alleen in het kamp blijven?','Het is bijna donker. Er is maar tijd voor drie stappen.']},
+  spoor:{nr:2,titel:'Water in de pootafdruk',
+    opdracht:'Aan de overkant van de rivier loopt het spoor van een hert. Er hangen donkere wolken. Vang het hert en zorg dat iedereen weer aan de kampkant van de rivier staat voordat het water stijgt.',
+    voorbeeld:'Oka, volg het spoor en vang het hert.',
+    f:{smoke:false,fire:false,berries:false,tracks:true,flood:true},
+    feiten:['water','regen','nat','wolk','hert','afdruk','spoor','donker'],
+    twists:['Het hert heeft een jong bij zich. Jaagt de stam dan nog?','De speer van Oka ligt nog in het kamp.','Mira weet dat de rivier bij regen heel snel stijgt. Hoe gebruik je wat Mira weet?','Er staat ook water in een oude afdruk. Hoe weet je welk spoor vers is?']},
+  bessen:{nr:3,titel:'De bessenstruik',
+    opdracht:'Aan de struik groeien donkerblauwe bessen (lekker) en rode bessen (giftig). Breng alleen goede bessen naar het kamp. Niemand mag ziek worden.',
+    voorbeeld:'Mira, pluk bessen.',
+    f:{smoke:false,fire:false,berries:true,tracks:false,flood:false},
+    feiten:['rood','rode','donker','blauw','bes','struik'],
+    twists:['Tuk heeft honger en kan niet wachten.','Een vogel heeft bijna alle donkere bessen opgegeten.','Het schemert. Mira kan de kleuren slecht zien. Hoe herken je een goede bes zonder kleur?']},
+  vrij:{nr:4,titel:'Eindopdracht: de hele dag',
+    opdracht:'Schrijf zo dat er precies gebeurt wat jij beoogt. Ontwerp een dag voor de stam: wie doet wat, waar, in welke volgorde, en wat gebeurt er als iets anders loopt dan verwacht? Haal vuur, voedsel of allebei.',
+    voorbeeld:'Eerst sluipt Oka voorzichtig over de rivier en volgt stil het spoor. Als er water in de afdruk staat, dan jaagt Oka op het hert en komt daarna meteen terug naar het kamp, want de rivier gaat stijgen. Tuk blijft in het kamp en eet niets. Mira loopt naar de struik en plukt alleen de donkere bessen. Daarna brengt Mira de bessen naar het kamp.',
+    f:{smoke:true,fire:true,berries:true,tracks:true,flood:false},
+    feiten:['rook','vuur','brand','water','regen','hert','afdruk','spoor','rood','rode','donker','blauw','bes'],
+    twists:['Halverwege de dag begint het te regenen.','Een andere stam kijkt vanaf de heuvel mee.','Oka verstuikt een enkel. Wie neemt het over?']}
+};
+const ORDER = ['rook','spoor','bessen','vrij'];
+
+/* ---------------- Taal ---------------- */
+const ANACHRO = ['fabriek','fabrieken','auto','autobrand','brandweer','telefoon','bellen','barbecue','bbq','aansteker','lucifer','lucifers','winkel','supermarkt','geweer','pistool','fiets','politie','ambulance','plastic','pan','oven','elektriciteit','stroom','tv','computer','mobiel','geld','kopen','klok','uur','minuten','minuut','seconde','seconden','zaklamp','brandblusser','tent','kaart','gps','vliegtuig','trein','schoen','schoenen','sms','app','appen'];
+const VAGUE = /\b(daar|daarheen|die kant|ergens|dat ding|dit ding|dingen|hier|zo snel mogelijk dat|dinges)\b/;
+const NEG = /\b(niet|nooit|geen|niets|niks)\b/;
+const CAUTION = /\b(voorzichtig\w*|rand|niet te dicht\w*|afstand|langzaam|op veilige)\b/;
+const STEALTH = /\b(stil\w*|zacht\w*|sluip\w*|voorzichtig\w*|langzaam|rustig|geruisloos|tegen de wind)\b/;
+const COND = /^(als|zodra|wanneer|indien|mocht)\b\s*(.+?)(?:,\s*(?:dan\s+)?|\s+dan\s+)(.+)$/;
+const SEQ = /\b(eerst|daarna|vervolgens|dan|als laatste|tot slot|ten slotte|nadat|voordat|zodra|meteen|daarvoor)\b/;
+
+const VERBS = [
+  ['flee',/\b(vlucht\w*|ren\w* weg|loop\w* weg|rennen weg|ga\w* weg|maak\w* dat)\b/],
+  ['shelter',/\b(schuil\w*|verstop\w*)\b/],
+  ['bring',/\b(breng\w*|draag\w*|neem\w* \w*\s?\w*\s?mee|terugbreng\w*)\b/],
+  ['gather',/\b(verzamel\w*|pluk\w*|zoek\w* (naar )?(\w+ )?bessen)\b/],
+  ['hunt',/\b(jaag\w*|jagen|jaagt|vang\w*|gooi\w*|steek\w* (het|de|op)|dood\w*|schiet\w*|vangen)\b/],
+  ['follow',/\b(volg\w*)\b/],
+  ['eat',/\b(eet|eten|proef\w*|opeten|opeet)\b/],
+  ['take',/\b(pak\w*|neem\w*|raap\w*|haal\w*|grijp\w*|pakken)\b/],
+  ['look',/\b(kijk\w*|let\w* op|bekijk\w*|onderzoek\w*|luister\w*|observeer\w*|zoek\w*|controleer\w*|ruik\w*|check\w*)\b/],
+  ['wait',/\b(wacht\w*|blijf\w*|blijven|stop\w*|rust\w*|zit\w*|ga\w* zitten)\b/],
+  ['move',/\b(loop\w*|lopen|ga|gaan|gaat|ren\w*|wandel\w*|sluip\w*|klim\w*|steek\w* over|oversteken|kom\w*|keer\w*|terug|wad\w*|zwem\w*|beklim\w*)\b/]
+];
+const PLACE_RE = [
+  ['vuur',/\b(rook|vuur|bosbrand|brand|vlammen|rookpluim|warmte|hitte)\b/],
+  ['heuvel',/\b(heuvel|top|berg|helling)\b/],
+  ['spoor',/\b(spoor|sporen|afdruk\w*|pootafdruk\w*|voetafdruk\w*)\b/],
+  ['struiken',/\b(struik\w*)\b/],
+  ['rivier',/\b(rivier|beek|oever|stroom)\b/],
+  ['bos',/\b(bos|bomen|boom)\b/],
+  ['kamp',/\b(kamp|hut|huis|thuis|grot|terug)\b/]
+];
+const ACTOR_RE = {oka:/\b(oka|jager)\b/, mira:/\b(mira|verzamelaar)\b/, tuk:/\b(tuk|kind|jongste|kleine)\b/};
+const ALL_RE = /\b(iedereen|allemaal|allen|jullie|de stam|samen|groep|ze allemaal)\b/;
+const PRON_RE = /\b(hij|zij|ze|hem|haar)\b/;
+
+function norm(s){return ' '+s.toLowerCase().replace(/[‘’“”"]/g,'').replace(/'/g,'').replace(/\s+/g,' ')+' ';}
+function verbOf(c){for(const [k,re] of VERBS){if(re.test(c))return k;}return null;}
+function placesOf(c){
+  const out=[];
+  for(const [k,re] of PLACE_RE){const m=c.match(re); if(m) out.push({k,i:m.index,w:m[0]});}
+  return out.sort((a,b)=>a.i-b.i);
+}
+function targetPlace(c){
+  const ps = placesOf(c); if(!ps.length) return null;
+  const naar = c.search(/\b(naar|richting|over|bij|op|in|tot)\b/);
+  if(naar>=0){const after = ps.filter(p=>p.i>naar); if(after.length) return after[0].k;}
+  return ps[ps.length-1].k;
+}
+function actorsOf(c){
+  if(ALL_RE.test(c)) return ACT.slice();
+  return ACT.filter(a=>ACTOR_RE[a].test(c));
+}
+function nounOf(c){
+  if(/\b(houtskool|sintel\w*|kool|kooltje\w*|gloeiende kolen)\b/.test(c)) return 'kool';
+  if(/\b(tak|takken|stok|stokken|hout|toorts|fakkel)\b/.test(c)) return 'tak';
+  if(/\b(vuur|vlam\w*)\b/.test(c)) return 'vuur';
+  if(/\b(bes|bessen)\b/.test(c)) return 'bessen';
+  if(/\b(hert|dier|prooi)\b/.test(c)) return 'hert';
+  return null;
+}
+
+function splitClauses(text){
+  const sentences = text.split(/[.!?;\n]+/).map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  for(const s of sentences){
+    let n = norm(s).replace(/\b(\w+) (daarna|vervolgens|meteen|dan)\b/g,(m,w)=>verbOf(' '+w+' ')&&!/^(en)$/.test(w)?w:m).replace(/\b(en daarna|en dan|daarna|vervolgens|als laatste|tot slot|ten slotte)\b/g,'|');
+    const raw = n.split('|').map(x=>x.trim()).filter(Boolean), parts=[];
+    raw.forEach((x,i)=>{ if(parts.length && parts[parts.length-1].split(' ').length<2 && !/^(eerst|dan)$/.test(parts[parts.length-1])) parts[parts.length-1]+=' '+x; else parts.push(x); });
+    for(let p of parts){
+      p = p.replace(/,?\s*\b(want|omdat|zodat|anders|dus)\b.*$/,'').trim(); if(!p) continue;
+      p = p.replace(/^(eerst|dan|en|daarna)\s+/,'').trim();
+      let cond=null;
+      const cm = (' '+p+' ').trim().match(COND);
+      if(cm){cond=cm[2].trim(); p=cm[3].trim();}
+      // split on ' en ' / ', ' and re-merge fragments without a verb
+      const frags = p.split(/,\s*|\s+en\s+/).map(x=>x.trim()).filter(Boolean);
+      const merged=[]; let carry='';
+      frags.forEach((f,i)=>{
+        const piece = (carry?carry+' ':'')+f; carry='';
+        if(verbOf(' '+piece+' ') || placesOf(' '+piece+' ').length && /\bnaar\b/.test(piece)){merged.push(piece);}
+        else if(i<frags.length-1 && (actorsOf(' '+piece+' ').length || /^(oka|mira|tuk)/.test(piece))) carry=piece;
+        else if(merged.length) merged[merged.length-1]+=', '+piece;
+        else merged.push(piece);
+      });
+      if(carry) merged.push(carry);
+      merged.forEach(m=>out.push({raw:m, c:' '+m+' ', cond, sentence:s}));
+    }
+  }
+  return out;
+}
+
+/* ---------------- Simulatie ---------------- */
+const LBL={kamp:'het kamp',bos:'het bos',rivier:'de rivier',struiken:'de struik',spoor:'het spoor',spoorEind:'het spoor',heuvel:'de heuvel',vuur:'het vuur',vuurRand:'het vuur'};
+function carryLbl(c){return c.startsWith('bessen')?'de bessen':c==='hert'?'het hert':c==='koude tak'?'de tak':'de '+c;}
+function posFor(place,id){const p=P[place];return {x:p.x+OFF[id].x,y:p.y+OFF[id].y};}
+function sideOfX(x){return x<RIVER_X?'kamp':'ver';}
+
+function newState(key){
+  const st={key,sc:SCEN[key],t:0,actors:{},kampVuur:false,hert:SCEN[key].f.tracks?'verborgen':'geen',rain:false,flood:false,water:false,revealed:new Set(),lastNoun:null,lastActors:null,tagged:false};
+  ACT.forEach(a=>{const p=posFor('kamp',a);st.actors[a]={p:'kamp',x:p.x,y:p.y,carry:null,hurt:false,sick:false,stealth:false,noEat:false,emote:null};});
+  return st;
+}
+function snap(st){
+  const a={}; ACT.forEach(k=>{const s=st.actors[k];a[k]={x:s.x,y:s.y,carry:s.carry,hurt:s.hurt,sick:s.sick,emote:s.emote};});
+  return {actors:a,kampVuur:st.kampVuur,hert:st.hert,rain:st.rain,flood:st.flood,t:st.t};
+}
+
+function simulate(text,key){
+  const st=newState(key), sc=st.sc, beats=[], flags=[], used=new Set();
+  const flag=(soort,citaat,vraag)=>{const k=soort+'|'+citaat;if(used.has(k))return;used.add(k);flags.push({soort,citaat,vraag});};
+  const full = norm(text);
+  const clauses = splitClauses(text);
+  const tukMentioned = ACTOR_RE.tuk.test(full) || ALL_RE.test(full);
+  let lines=[], kind='neutraal';
+  const say=(s,k)=>{lines.push(s); if(k==='fout')kind='fout'; else if(k==='goed'&&kind!=='fout')kind='goed';};
+  const beat=()=>{ if(!lines.length) return; beats.push({snap:snap(st),text:lines.join(' '),kind,t:st.t}); lines=[];kind='neutraal'; ACT.forEach(a=>st.actors[a].emote=null);};
+  let verbsDone=new Set(), noActorWarned=false;
+
+  if(!clauses.length){return {beats,flags:[{soort:'onbekend',citaat:'',vraag:'Er staat nog niets. Wat moet de stam doen?'}],goal:{s:'open',msg:'Nog geen instructie.'},stats:{}};}
+
+  // move helper
+  function moveTo(id,place,opts={}){
+    const a=st.actors[id]; const tgt=posFor(place,id);
+    if(st.flood && sideOfX(a.x)!==sideOfX(tgt.x)){
+      const bank = sideOfX(a.x)==='kamp'? {x:RIVER_X-30,y:350+OFF[id].y} : {x:RIVER_X+38,y:352+OFF[id].y};
+      a.x=bank.x;a.y=bank.y;a.p=sideOfX(a.x)==='kamp'?'rivier':'spoor';a.emote='!';
+      say(`${NAME[id]} staat bij de rivier, maar het water is te hoog. ${NAME[id]} kan niet meer oversteken.`,'fout');
+      return false;
+    }
+    a.x=tgt.x;a.y=tgt.y;a.p=place; return true;
+  }
+  function arrive(id){
+    const a=st.actors[id];
+    if(a.p==='kamp' && (a.carry==='brandende tak'||a.carry==='gloeiende kool') && !st.kampVuur){
+      st.kampVuur=true; say(`In het kamp brandt weer een vuur.`,'goed'); a.carry=null;
+    }
+    if(a.p==='kamp' && a.carry==='koude tak' && sc.f.fire){ say(`${NAME[id]} legt de tak in de lege vuurplaats. Er gebeurt niets: de tak brandt niet.`,'fout'); }
+  }
+  function tagAlong(leader){
+    if(st.key!=='bessen' || tukMentioned || st.tagged || leader==='tuk') return;
+    st.tagged=true; const t=st.actors.tuk; const p=posFor('struiken','tuk'); t.x=p.x;t.y=p.y;t.p='struiken';
+    say(`Tuk loopt achter ${NAME[leader]} aan. Niemand zei dat Tuk in het kamp moest blijven.`);
+    if(!t.noEat){t.sick=true;t.emote='!';say('Tuk eet een paar rode bessen en wordt ziek.','fout');
+      flag('vergeten','Tuk','Je gaf Tuk geen opdracht. Wat doet een kind dat niemand iets vertelt?');}
+  }
+  function condTrue(cond){
+    const c=' '+cond+' '; const neg=NEG.test(c);
+    let hit=sc.feiten.some(w=>c.includes(w));
+    if(st.key==='spoor'||st.key==='vrij'){ if(/\b(water|regen|nat)\b/.test(c)) hit = true; }
+    if(/\b(hert|dier)\b/.test(c)) hit = st.hert!=='geen' && st.hert!=='gevlucht';
+    if(/\brode?\b/.test(c) && !sc.f.berries) hit=false;
+    if(/\b(fabriek|auto)\b/.test(c)) hit=false;
+    return neg? !hit : hit;
+  }
+
+  for(const cl of clauses){
+    const c=cl.c;
+    // wie?
+    let ids = actorsOf(c);
+    if(!ids.length && PRON_RE.test(c) && st.lastActors) ids=st.lastActors;
+    if(!ids.length && st.lastActors) ids=st.lastActors;
+    if(!ids.length){ ids=['oka']; if(!noActorWarned){noActorWarned=true; flag('wie',cl.raw,'Wie bedoelde je? Je noemde niemand, dus alleen Oka voelde zich aangesproken.');}}
+    st.lastActors=ids;
+    const names = ids.map(i=>NAME[i]).join(' en ');
+
+    // voorwaarde
+    if(cl.cond){
+      const ok=condTrue(cl.cond);
+      flag('sterk','als '+cl.cond,'Je maakte een voorwaarde. De stam controleert eerst of die klopt.');
+      if(!ok){ say(`${names} ${ids.length>1?'controleren':'controleert'} of ${cl.cond}. Dat is niet zo, dus ${ids.length>1?'doen ze':'gebeurt er'} niets.`); st.t+=1; beat(); continue; }
+      if(st.lastCond!==cl.sentence+cl.cond){ say(`${names} ziet dat ${cl.cond}.`); st.lastCond=cl.sentence+cl.cond; }
+    }
+
+    // anachronisme
+    const ana = ANACHRO.find(w=>new RegExp('\\b'+w+'\\b').test(c));
+    if(ana){
+      ids.forEach(i=>st.actors[i].emote='?');
+      say(`${names} ${ids.length>1?'kijken':'kijkt'} verward. ‘${ana}’? Dat woord bestaat in hun wereld niet.`,'fout');
+      flag('anachronisme',ana,`Bestond ‘${ana}’ al in de prehistorie? Welk woord kent de stam wel?`);
+      if(sc.f.fire && /\b(rook|vuur|brand)\b/.test(c)){ ids.forEach(i=>{moveTo(i,'vuurRand');i&&(st.actors[i].emote='?');}); say(`Nieuwsgierig ${ids.length>1?'lopen ze':'loopt '+names} juist naar de warmte toe.`,'fout'); }
+      st.t+=1; beat(); continue;
+    }
+
+    let verb = verbOf(c);
+    const negated = NEG.test(c);
+    const place = targetPlace(c);
+    const noun = nounOf(c) || (/\b(het|hem|dat|die|ze)\b/.test(c) ? st.lastNoun : null);
+    if(nounOf(c)) st.lastNoun=nounOf(c);
+    if(!verb && place) verb='move';
+    if(!verb){
+      ids.forEach(i=>st.actors[i].emote='?');
+      say(`${names} ${ids.length>1?'wachten':'wacht'} af. ‘${cl.raw}’ is voor de stam geen handeling.`);
+      flag('onbekend',cl.raw,`Welk werkwoord hoort bij ‘${cl.raw}’? Wat moet er gebeuren?`);
+      st.t+=1; beat(); continue;
+    }
+    if(negated && verb==='eat'){ ids.forEach(i=>st.actors[i].noEat=true); verb='noeat'; }
+    else if(negated && ['move','take','follow','hunt','gather','bring'].includes(verb)){ verb='avoid'; }
+    if(STEALTH.test(c)) ids.forEach(i=>st.actors[i].stealth=true);
+    verbsDone.add(verb);
+
+    for(const id of ids){
+      const a=st.actors[id], N=NAME[id];
+      switch(verb){
+        case 'avoid': a.emote='…'; say(`${N} blijft waar ${N} is.`); break;
+        case 'noeat': say(`${N} eet niets.`); break;
+        case 'wait': a.emote='…'; say(`${N} wacht.`); break;
+        case 'flee': moveTo(id,'kamp'); a.emote='!'; say(`${N} rent terug naar het kamp.`); arrive(id); break;
+        case 'shelter': moveTo(id,'kamp'); say(`${N} schuilt in de hut.`); break;
+        case 'move': {
+          let tgt=place;
+          if(!tgt && VAGUE.test(c)){ const m=c.match(VAGUE)[0]; const opts=['bos','rivier','struiken','heuvel']; tgt=opts[(st.t+id.length)%opts.length]; flag('vaag',m.trim(),`Naar welke plek wijst ‘${m.trim()}’? De stam kan je vinger niet zien.`); a.emote='?'; say(`${N} weet niet waar ‘${m.trim()}’ is en loopt maar naar ${LBL[tgt]}.`,'fout'); moveTo(id,tgt); break; }
+          if(!tgt){ a.emote='?'; say(`${N} loopt een paar passen en blijft staan. Waarheen?`,'fout'); flag('waarheen',cl.raw,'Waar moest dat naartoe? Noem de plek.'); break; }
+          if(tgt==='vuur'){
+            if(!sc.f.fire){ a.emote='?'; say(`${N} ziet hier nergens vuur.`); break; }
+            const careful = CAUTION.test(c);
+            if(!moveTo(id,'vuurRand')) break;
+            if(careful) say(`${N} loopt voorzichtig naar de rand van het vuur.`);
+            else { a.emote='!'; say(`${N} loopt recht op het vuur af, voelt de hitte en deinst terug tot de rand.`); flag('gevaar',cl.raw,'Hoe dichtbij moest het? Wat weet jij over vuur dat je er niet bij schreef?'); }
+            st.lastNoun='vuur'; break;
+          }
+          if(tgt==='spoor' && !sc.f.tracks){ a.emote='?'; say(`${N} zoekt een spoor, maar vindt niets.`); break; }
+          if(tgt==='struiken' && !sc.f.berries){ moveTo(id,'struiken'); say(`${N} loopt naar de struik. Er groeit niets aan.`); break; }
+          if(!moveTo(id,tgt)) break;
+          say(`${N} ${/sluip/.test(c)?'sluipt':(/\bren/.test(c)?'rent':'loopt')} naar ${LBL[tgt]||tgt}${a.carry?' met '+carryLbl(a.carry):''}.`);
+          if(tgt==='struiken') tagAlong(id);
+          arrive(id); break;
+        }
+        case 'look': {
+          const at = a.p, target = place||at;
+          a.emote='…';
+          if(sc.f.fire && ['heuvel','vuur','vuurRand'].includes(at)){ say(`${N} kijkt en ziet dat het bos brandt. De bliksem sloeg in een boom.`); st.revealed.add('bosbrand'); }
+          else if(sc.f.fire && target==='vuur'){ say(`${N} kijkt naar de rook boven de heuvel. Daar brandt iets.`); }
+          else if(sc.f.tracks && (['spoor','spoorEind'].includes(at) || target==='spoor')){
+            if(sideOfX(a.x)==='ver'){ say(`${N} ziet water in de pootafdruk. Het begint te regenen.`); st.revealed.add('water'); st.water=true; st.rain=true; if(st.hert==='verborgen'){st.hert='zichtbaar'; say('Verderop staat het hert.');} }
+            else say(`${N} tuurt over de rivier. Het spoor is te ver weg om goed te zien.`);
+          }
+          else if(sc.f.berries && (at==='struiken'||target==='struiken')){ say(`${N} ziet donkerblauwe en rode bessen door elkaar.`); }
+          else if(at==='rivier'||target==='rivier'){ say(`${N} kijkt naar de rivier. ${sc.f.flood?'Het water stroomt sneller dan gisteren.':'Het water is rustig.'}`); }
+          else say(`${N} kijkt rond.`);
+          break;
+        }
+        case 'follow': {
+          if(!sc.f.tracks){ a.emote='?'; say(`${N} zoekt een spoor om te volgen, maar vindt er geen.`); break; }
+          if(!moveTo(id,'spoorEind')) break;
+          say(`${N} volgt het spoor over de rivier.`);
+          if(st.hert==='verborgen'||st.hert==='zichtbaar'){
+            if(a.stealth){ st.hert='zichtbaar'; say(`${N} sluipt dichterbij. Het hert merkt niets.`); }
+            else { st.hert='gevlucht'; a.emote='!'; say(`Het hert hoort ${N} aankomen en springt weg.`,'fout'); flag('letterlijk',cl.raw,`Hoe moest ${N} het spoor volgen? Het hert hoorde ${N} aankomen.`); }
+          }
+          break;
+        }
+        case 'hunt': {
+          if(!sc.f.tracks){ a.emote='?'; say(`${N} heft de speer, maar er is niets om op te jagen.`); break; }
+          if(st.hert==='gevlucht'){ a.emote='…'; say(`${N} zoekt het hert, maar het is weg.`,'fout'); break; }
+          if(st.hert==='gevangen'){ say(`Het hert is al gevangen.`); break; }
+          if(st.hert==='verborgen'){ a.emote='?'; say(`${N} weet niet waar het hert is.`,'fout'); flag('waarheen',cl.raw,'Hoe weet de jager waar het hert is? Wat moet eerst gebeuren?'); break; }
+          if(a.p!=='spoorEind'){ if(!moveTo(id,'spoorEind')) break; if(!a.stealth){ st.hert='gevlucht'; a.emote='!'; say(`${N} rent op het hert af. Het hert schrikt en is weg.`,'fout'); flag('letterlijk',cl.raw,'Hoe nadert een jager een hert? Wat schreef je daarover?'); break; } }
+          if(id==='tuk'){ say('Tuk is te klein om een hert te vangen.','fout'); break; }
+          st.hert='gevangen'; a.carry='hert'; st.t+=1; say(`${N} gooit de speer en vangt het hert.`,'goed'); break;
+        }
+        case 'take': {
+          const atFire = a.p==='vuur'||a.p==='vuurRand';
+          if(!noun){ a.emote='?'; say(`${N} steekt een hand uit. Wat moet ${N} pakken?`,'fout'); flag('vaag',cl.raw,'Pak wat? Noem het ding dat je bedoelt.'); break; }
+          if(noun==='vuur'){
+            if(atFire){ a.hurt=true; a.emote='!'; say(`${N} grijpt in de vlammen en brandt de handen.`,'fout'); flag('letterlijk',cl.raw,'Kun je vuur vastpakken? Wat moest er eigenlijk worden opgepakt?'); }
+            else { a.emote='?'; say(`${N} kijkt om zich heen. Hier is geen vuur.`,'fout'); flag('waarheen',cl.raw,'Waar was het vuur? Moest er eerst iemand ergens heen?'); }
+            break;
+          }
+          if(noun==='kool'){
+            if(!atFire){ a.emote='?'; say(`${N} vindt hier geen gloeiende kolen.`); break; }
+            if(/\b(blad|bladeren|schors|schelp|steen|stenen|huid|vel|bot|twee takken|stokjes)\b/.test(c)){ a.carry='gloeiende kool'; say(`${N} schept een gloeiende kool op ${(c.match(/\b(blad|schors|schelp|steen|huid|vel|bot)\b/)||['een blad'])[0]}.`,'goed'); }
+            else { a.hurt=true; a.emote='!'; say(`${N} pakt een gloeiende kool met blote handen. Au.`,'fout'); flag('letterlijk',cl.raw,'Waarmee pak je iets dat gloeit? Dat staat er nog niet.'); }
+            break;
+          }
+          if(noun==='tak'){
+            if(atFire && /\b(brand\w*|smeul\w*|gloei\w*|vlam\w*|aan het eind|aan het uiteinde)\b/.test(c)){ a.carry='brandende tak'; say(`${N} pakt een brandende tak aan het koele uiteinde.`,'goed'); }
+            else if(atFire){ a.carry='koude tak'; say(`${N} pakt een tak van de grond. Die brandt niet.`,'fout'); flag('letterlijk',cl.raw,`Je schreef ‘tak’. ${N} pakte een tak. Brandde die? Hoe weet ${N} welke tak je bedoelt?`); }
+            else { a.carry='koude tak'; say(`${N} raapt een tak op.`); }
+            break;
+          }
+          if(noun==='bessen'){ verb='gather'; }
+          else if(noun==='hert'){ say(`${N} kan een levend hert niet zomaar pakken.`,'fout'); break; }
+          else break;
+        }
+        // eslint-disable-next-line no-fallthrough
+        case 'gather': {
+          if(!sc.f.berries){ a.emote='?'; say(`${N} zoekt bessen, maar hier groeien er geen.`); break; }
+          if(a.p!=='struiken'){ if(!moveTo(id,'struiken')) break; say(`${N} loopt naar de struik.`); tagAlong(id); }
+          const good=/\b(donker\w*|blauw\w*|zwart\w*|paars\w*)\b/.test(c), bad=/\b(rood|rode)\b/.test(c) && !/\b(geen|niet|zonder)\b[^,]*\brod?e?\b/.test(c);
+          if(good && !bad){ a.carry='bessen goed'; say(`${N} plukt alleen donkerblauwe bessen.`,'goed'); }
+          else if(bad && !good){ a.carry='bessen rood'; say(`${N} plukt rode bessen.`,'fout'); }
+          else { a.carry='bessen gemengd'; a.emote='…'; say(`${N} plukt alle bessen die aan de struik hangen: blauwe en rode door elkaar.`,'fout'); flag('letterlijk',cl.raw,'Welke bessen bedoelde je? Hoe ziet de stam het verschil?'); }
+          break;
+        }
+        case 'bring': {
+          let dest = place || (/\bterug\b/.test(c)?'kamp':null);
+          if(!a.carry && noun){
+            if(noun==='tak' || noun==='kool' || noun==='vuur'){ const before=a.hurt; // eerst pakken
+              const atFire=a.p==='vuur'||a.p==='vuurRand';
+              if(noun==='vuur'&&atFire){a.hurt=true;a.emote='!';say(`${N} probeert het vuur te dragen en brandt de handen.`,'fout');flag('letterlijk',cl.raw,'Kun je vuur dragen? Waarin of waarmee?');}
+              else if(noun==='tak'&&atFire&&/\b(brand\w*|smeul\w*|gloei\w*)\b/.test(c)){a.carry='brandende tak';say(`${N} pakt een brandende tak.`,'goed');}
+              else if(noun==='tak'){a.carry='koude tak';say(`${N} pakt een tak.`);}
+              else if(noun==='kool'&&atFire&&/\b(blad|schors|schelp|steen|huid|vel|bot)\b/.test(c)){a.carry='gloeiende kool';say(`${N} neemt een gloeiende kool mee.`,'goed');}
+              else if(!atFire){a.emote='?';say(`${N} heeft niets om te brengen. Hier is geen vuur.`,'fout');}
+              if(a.hurt&&!before) break;
+            } else if(noun==='bessen' && a.p==='struiken'){ a.carry='bessen gemengd'; say(`${N} grijpt een handvol bessen, blauw en rood door elkaar.`,'fout'); flag('letterlijk',cl.raw,'Welke bessen moesten mee?'); }
+          }
+          if(!a.carry){ a.emote='?'; say(`${N} heeft niets in de handen om te brengen.`,'fout'); flag('incompleet',cl.raw,'Wat moest er gebracht worden? Had iemand het al gepakt?'); break; }
+          if(!dest){ a.emote='?'; say(`${N} houdt ${carryLbl(a.carry)} vast. Waarheen?`,'fout'); flag('waarheen',cl.raw,'Waar moest het naartoe?'); break; }
+          if(!moveTo(id,dest)) break;
+          say(`${N} brengt ${carryLbl(a.carry)} naar ${LBL[dest]||dest}.`);
+          arrive(id); break;
+        }
+        case 'eat': {
+          if(a.noEat){ say(`${N} eet niets.`); break; }
+          if(a.carry && a.carry.startsWith('bessen')){ if(a.carry!=='bessen goed'){a.sick=true;a.emote='!';say(`${N} eet de bessen en wordt ziek.`,'fout');} else say(`${N} eet een paar donkere bessen.`,'goed'); }
+          else if(a.p==='struiken' && sc.f.berries){ a.sick=true;a.emote='!';say(`${N} eet bessen van de struik, ook rode, en wordt ziek.`,'fout'); flag('letterlijk',cl.raw,'Welke bessen mochten gegeten worden?'); }
+          else say(`${N} heeft niets te eten.`);
+          break;
+        }
+      }
+    }
+    st.t+=1;
+    if(sc.f.flood){ if(st.t>=3 && !st.rain){st.rain=true; say('Het begint te regenen.');} if(st.t>=7 && !st.flood){st.flood=true; say('De rivier treedt buiten haar oevers.','fout');} }
+    beat();
+  }
+
+  // slot: tijd laten verlopen
+  if(sc.f.flood && !st.flood){ st.rain=true; st.flood=true; st.t=Math.max(st.t,7); say('Het regent harder. De rivier stijgt en is niet meer over te steken.'); beat(); }
+  if(st.key==='bessen'){
+    const carriers=ACT.filter(a=>st.actors[a].p==='kamp' && st.actors[a].carry && st.actors[a].carry.startsWith('bessen'));
+    carriers.forEach(a=>{const c=st.actors[a].carry; if(c!=='bessen goed'){ st.actors.tuk.sick=true; st.actors.tuk.emote='!'; say('Bij het eten in het kamp krijgt Tuk een rode bes te pakken en wordt ziek.','fout'); }});
+    if(lines.length) beat();
+  }
+
+  // onvolledig: alleen kijken/wachten
+  const active=[...verbsDone].filter(v=>!['look','wait','avoid','noeat'].includes(v));
+  if(!active.length && verbsDone.size){ flag('incompleet',clauses.map(c=>c.raw).join(' / '),'De stam deed precies wat er stond. En dan? Wat moest er gebeuren met wat ze zagen?'); }
+
+  const goal = evalGoal(st);
+  return {beats,flags,goal,stats:{clauses:clauses.length}};
+}
+
+function evalGoal(st){
+  const A=st.actors, hurt=ACT.filter(a=>A[a].hurt), sick=ACT.filter(a=>A[a].sick);
+  if(st.key==='rook'){
+    if(st.kampVuur && !hurt.length) return {s:'ok',msg:'Gelukt: er brandt vuur in het kamp en niemand is gewond.'};
+    if(hurt.length) return {s:'nee',msg:`${hurt.map(a=>NAME[a]).join(' en ')} raakte gewond.${st.kampVuur?' Er brandt wel vuur in het kamp.':''}`};
+    const tak=ACT.find(a=>A[a].carry==='brandende tak'||A[a].carry==='gloeiende kool');
+    if(tak) return {s:'open',msg:`${NAME[tak]} heeft vuur vast, maar het is nog niet in het kamp.`};
+    return {s:'open',msg:'Er brandt nog geen vuur in het kamp.'};
+  }
+  if(st.key==='spoor'){
+    const stranded=ACT.filter(a=>sideOfX(A[a].x)==='ver');
+    const caught=st.hert==='gevangen';
+    if(caught && !stranded.length) return {s:'ok',msg:'Gelukt: het hert is gevangen en iedereen staat aan de kampkant van de rivier.'};
+    if(stranded.length) return {s:'nee',msg:`${stranded.map(a=>NAME[a]).join(' en ')} ${stranded.length>1?'zitten':'zit'} vast aan de overkant van de rivier.${caught?' Het hert is wel gevangen.':''}`};
+    if(st.hert==='gevlucht') return {s:'nee',msg:'Het hert is gevlucht.'};
+    return {s:'open',msg:'Iedereen is veilig, maar er is geen hert gevangen.'};
+  }
+  if(st.key==='bessen'){
+    const good=ACT.find(a=>A[a].p==='kamp'&&A[a].carry==='bessen goed');
+    if(sick.length) return {s:'nee',msg:`${sick.map(a=>NAME[a]).join(' en ')} werd ziek van de rode bessen.`};
+    if(good) return {s:'ok',msg:'Gelukt: er liggen alleen goede bessen in het kamp en niemand is ziek.'};
+    const some=ACT.find(a=>A[a].carry&&A[a].carry.startsWith('bessen'));
+    if(some) return {s:'open',msg:`${NAME[some]} heeft bessen, maar ze zijn nog niet in het kamp.`};
+    return {s:'open',msg:'Er zijn nog geen bessen in het kamp.'};
+  }
+  // vrij
+  const res=[];
+  if(st.kampVuur) res.push('vuur in het kamp');
+  if(st.hert==='gevangen') res.push('een hert gevangen');
+  if(ACT.some(a=>A[a].p==='kamp'&&A[a].carry==='bessen goed')) res.push('goede bessen in het kamp');
+  const bad=[...hurt.map(a=>NAME[a]+' gewond'),...sick.map(a=>NAME[a]+' ziek')];
+  if(bad.length) return {s:'nee',msg:`Resultaat: ${res.join(', ')||'niets binnengehaald'}. Maar: ${bad.join(', ')}.`};
+  return {s:res.length?'ok':'open',msg:res.length?`Resultaat van de dag: ${res.join(', ')}.`:'De dag is voorbij, maar er is niets binnengehaald.'};
+}
+
+/* ---------------- Rubric eindopdracht ---------------- */
+function rubric(text){
+  const c=norm(text), cls=splitClauses(text);
+  const actors=new Set(); ACT.forEach(a=>{if(ACTOR_RE[a].test(c))actors.add(a);});
+  const places=new Set(); PLACE_RE.forEach(([k,re])=>{if(re.test(c))places.add(k);});
+  const steps=cls.filter(x=>verbOf(x.c)).length;
+  const ana=ANACHRO.some(w=>new RegExp('\\b'+w+'\\b').test(c));
+  return [
+    ['Personages',actors.size>=2||ALL_RE.test(c)],
+    ['Handelingen',steps>=4],
+    ['Tijd',/\b(ochtend|middag|avond|nacht|zon|donker wordt|voordat|nadat|zodra|eerst|daarna|meteen|tot)\b/.test(c)],
+    ['Plaats',places.size>=2],
+    ['Volgorde',SEQ.test(c)],
+    ['Voorwaarden',/\b(als|zodra|wanneer|tenzij|indien)\b/.test(c)],
+    ['Onderbouwing',/\b(want|omdat|zodat|anders|daardoor|dus)\b/.test(c)],
+    ['Geen misverstanden',!ana && !VAGUE.test(c)]
+  ];
+}
+
+/* ---------------- Tekenen ---------------- */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let view={cur:null,from:null,to:null,start:0,dur:1100,scenKey:'rook'};
+function resizeCanvas(){const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=960*dpr;cv.height=420*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
+resizeCanvas();
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+
+function drawScene(ts){
+  const sc=SCEN[view.scenKey], s=currentSnap(ts);
+  const rain=s.rain, flood=s.flood;
+  // lucht
+  const g=ctx.createLinearGradient(0,0,0,300);
+  if(rain){g.addColorStop(0,'#5b6670');g.addColorStop(1,'#9aa5a3');}
+  else {g.addColorStop(0,'#6f9bb5');g.addColorStop(1,'#e7d9b8');}
+  ctx.fillStyle=g;ctx.fillRect(0,0,960,420);
+  if(rain){ctx.fillStyle='rgba(60,66,72,.55)';for(let i=0;i<6;i++){const x=(i*190+ts/90)%1100-80;ctx.beginPath();ctx.ellipse(x,48+(i%3)*14,90,24,0,0,Math.PI*2);ctx.fill();}}
+  // verre heuvels
+  ctx.fillStyle=rain?'#6c786f':'#8ea68a';ctx.beginPath();ctx.moveTo(0,250);
+  for(let x=0;x<=960;x+=40)ctx.lineTo(x,232+Math.sin(x/90)*14);ctx.lineTo(960,420);ctx.lineTo(0,420);ctx.fill();
+  // rook
+  if(sc.f.smoke){
+    for(let i=0;i<18;i++){const ph=((ts/5200)+i/18)%1;const x=820+Math.sin(ph*6+i)*14*ph+ph*70;const y=230-ph*220;const r=10+ph*34;
+      ctx.fillStyle=`rgba(${70+ph*90},${70+ph*90},${72+ph*90},${(1-ph)*.55})`;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
+  }
+  // grote heuvel
+  ctx.fillStyle=rain?'#56664f':'#6d8a57';ctx.beginPath();ctx.moveTo(560,330);ctx.quadraticCurveTo(650,170,735,186);ctx.quadraticCurveTo(840,196,960,268);ctx.lineTo(960,420);ctx.lineTo(560,420);ctx.fill();
+  // grond
+  ctx.fillStyle=rain?'#5f6b48':'#7b8f4f';ctx.beginPath();ctx.moveTo(0,290);ctx.quadraticCurveTo(300,275,600,300);ctx.lineTo(960,300);ctx.lineTo(960,420);ctx.lineTo(0,420);ctx.fill();
+  ctx.fillStyle=rain?'#56603f':'#6f8247';ctx.fillRect(0,380,960,40);
+  // bosbrand op de heuvel
+  if(sc.f.fire){
+    for(let i=0;i<9;i++){const x=790+i*18,base=226+i*4.5,h=16+Math.sin(ts/120+i*1.7)*6+(i%3)*5;
+      ctx.fillStyle='#e0631d';ctx.beginPath();ctx.moveTo(x-8,base);ctx.quadraticCurveTo(x,base-h*1.4,x+8,base);ctx.fill();
+      ctx.fillStyle='#f7c34a';ctx.beginPath();ctx.moveTo(x-4,base);ctx.quadraticCurveTo(x,base-h*.8,x+4,base);ctx.fill();}
+    ctx.strokeStyle='#3b2a1d';ctx.lineWidth=3;for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(800+i*30,232+i*6);ctx.lineTo(796+i*30,200+i*6);ctx.stroke();}
+  }
+  // rivier
+  const rw = flood?54:30;
+  ctx.fillStyle=flood?'#4f7f98':'#5d93ad';ctx.beginPath();
+  ctx.moveTo(RIVER_X-rw/2-8,282);
+  for(let y=282;y<=420;y+=14)ctx.lineTo(RIVER_X-rw/2+Math.sin(y/22+ts/700)*4+(y-282)*.12,y);
+  for(let y=420;y>=282;y-=14)ctx.lineTo(RIVER_X+rw/2+Math.sin(y/22+ts/700+1)*4+(y-282)*.12,y);
+  ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1.5;for(let i=0;i<5;i++){const y=300+i*24+(ts/40)%24;ctx.beginPath();ctx.moveTo(RIVER_X-6+(y-282)*.12,y);ctx.lineTo(RIVER_X+6+(y-282)*.12,y+4);ctx.stroke();}
+  // bos
+  [[175,292,1],[205,282,1.2],[248,288,1.05],[280,294,.9],[222,300,.8]].forEach(([x,y,s])=>{
+    ctx.fillStyle='#4a3424';ctx.fillRect(x-3*s,y-6,6*s,20*s);
+    ctx.fillStyle=rain?'#2f4a33':'#355c3a';ctx.beginPath();ctx.moveTo(x,y-62*s);ctx.lineTo(x+24*s,y);ctx.lineTo(x-24*s,y);ctx.fill();
+    ctx.beginPath();ctx.moveTo(x,y-82*s);ctx.lineTo(x+18*s,y-30*s);ctx.lineTo(x-18*s,y-30*s);ctx.fill();});
+  // struik
+  ctx.fillStyle='#3d5a2c';[[455,300,26],[480,294,30],[505,302,22]].forEach(([x,y,r])=>{ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();});
+  if(sc.f.berries){for(let i=0;i<22;i++){const x=440+(i*37)%80,y=284+(i*23)%28;ctx.fillStyle=i%3===0?'#c8262c':'#2b2f6b';ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fill();}}
+  // spoor
+  if(sc.f.tracks){for(let i=0;i<7;i++){const x=528+i*24,y=372-i*3+(i%2)*6;ctx.fillStyle='#4e3d2a';ctx.beginPath();ctx.ellipse(x,y,5,3,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x+5,y,5,3,0,0,Math.PI*2);ctx.fill();
+      if(rain){ctx.fillStyle='rgba(140,190,215,.9)';ctx.beginPath();ctx.ellipse(x+2,y,4,2,0,0,Math.PI*2);ctx.fill();}}}
+  // hert
+  if(s.hert==='zichtbaar'){drawDeer(728,338);}
+  // kamp
+  ctx.fillStyle='#7a5636';ctx.beginPath();ctx.moveTo(40,334);ctx.lineTo(78,262);ctx.lineTo(116,334);ctx.fill();
+  ctx.fillStyle='#4a321e';ctx.beginPath();ctx.moveTo(68,334);ctx.lineTo(78,300);ctx.lineTo(88,334);ctx.fill();
+  ctx.fillStyle='#5a5a52';for(let i=0;i<6;i++){const a=i/6*Math.PI*2;ctx.beginPath();ctx.arc(150+Math.cos(a)*14,372+Math.sin(a)*5,4,0,Math.PI*2);ctx.fill();}
+  if(s.kampVuur){const h=14+Math.sin(ts/110)*4;ctx.fillStyle='#e0631d';ctx.beginPath();ctx.moveTo(140,372);ctx.quadraticCurveTo(150,372-h*1.8,160,372);ctx.fill();ctx.fillStyle='#f7c34a';ctx.beginPath();ctx.moveTo(145,372);ctx.quadraticCurveTo(150,372-h,155,372);ctx.fill();}
+  // personages
+  const order=ACT.slice().sort((a,b)=>s.actors[a].y-s.actors[b].y);
+  order.forEach(id=>drawActor(id,s.actors[id],ts));
+  // regen
+  if(rain){ctx.strokeStyle='rgba(220,232,240,.55)';ctx.lineWidth=1;for(let i=0;i<90;i++){const x=(i*53+ts/4)%980-10,y=(i*97+ts/2.2)%440-20;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-4,y+12);ctx.stroke();}}
+  document.getElementById('clock').textContent='tijd '+s.t+(sc.f.flood?(s.flood?' · rivier buiten de oevers':s.rain?' · regen':' · droog'):'');
+}
+function drawDeer(x,y){ctx.fillStyle='#8a5a33';ctx.beginPath();ctx.ellipse(x,y,22,11,0,0,Math.PI*2);ctx.fill();ctx.fillRect(x-16,y+6,3,16);ctx.fillRect(x+12,y+6,3,16);ctx.fillRect(x-8,y+6,3,16);ctx.fillRect(x+5,y+6,3,16);
+  ctx.beginPath();ctx.ellipse(x+24,y-14,6,9,.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#5a3a1e';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+24,y-22);ctx.lineTo(x+20,y-34);ctx.moveTo(x+26,y-22);ctx.lineTo(x+32,y-34);ctx.stroke();}
+const FUR={oka:'#6e4426',mira:'#8f6a3c',tuk:'#a37c4a'};
+function drawActor(id,a,ts){
+  const s=id==='tuk'?.72:1, x=a.x, y=a.y, bob=Math.sin(ts/300+x)*1;
+  ctx.save();ctx.translate(x,y+bob);ctx.scale(s,s);
+  ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(0,2,13,4,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#3a2617';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-5,-14);ctx.lineTo(-6,0);ctx.moveTo(5,-14);ctx.lineTo(6,0);ctx.stroke();
+  ctx.fillStyle=FUR[id];ctx.beginPath();ctx.moveTo(-11,-14);ctx.lineTo(-8,-40);ctx.lineTo(8,-40);ctx.lineTo(11,-14);ctx.fill();
+  ctx.fillStyle=a.sick?'#a9b77b':'#c99a6b';ctx.beginPath();ctx.arc(0,-48,9,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2c1d12';ctx.beginPath();ctx.arc(0,-51,9.5,Math.PI*1.05,Math.PI*1.95);ctx.fill();
+  ctx.strokeStyle=a.hurt?'#e0631d':'#c99a6b';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(-9,-36);ctx.lineTo(-15,-22);ctx.moveTo(9,-36);ctx.lineTo(15,-22);ctx.stroke();
+  if(id==='oka'&&a.carry!=='hert'){ctx.strokeStyle='#6b5032';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(18,-8);ctx.lineTo(22,-66);ctx.stroke();ctx.fillStyle='#7d7d78';ctx.beginPath();ctx.moveTo(22,-74);ctx.lineTo(25,-64);ctx.lineTo(19,-64);ctx.fill();}
+  if(id==='mira'){ctx.fillStyle='#b88a4a';ctx.fillRect(-24,-26,11,9);}
+  if(a.carry){
+    if(a.carry.includes('tak')){ctx.strokeStyle='#5a3d22';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(14,-20);ctx.lineTo(24,-44);ctx.stroke();
+      if(a.carry==='brandende tak'){const h=8+Math.sin(ts/90)*3;ctx.fillStyle='#e0631d';ctx.beginPath();ctx.moveTo(20,-44);ctx.quadraticCurveTo(25,-44-h*1.6,29,-44);ctx.fill();ctx.fillStyle='#f7c34a';ctx.beginPath();ctx.arc(24,-47,2.5,0,Math.PI*2);ctx.fill();}}
+    else if(a.carry==='gloeiende kool'){ctx.fillStyle='#4a6b35';ctx.fillRect(12,-25,12,4);ctx.fillStyle='#ff7a2a';ctx.beginPath();ctx.arc(18,-28,3.5,0,Math.PI*2);ctx.fill();}
+    else if(a.carry.startsWith('bessen')){const red=a.carry!=='bessen goed';for(let i=0;i<6;i++){ctx.fillStyle=(red&&i%2)?'#c8262c':'#2b2f6b';ctx.beginPath();ctx.arc(-22+i%3*4,-29-Math.floor(i/3)*3,2.4,0,Math.PI*2);ctx.fill();}}
+    else if(a.carry==='hert'){ctx.fillStyle='#8a5a33';ctx.beginPath();ctx.ellipse(0,-42,18,8,0,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.restore();
+  // naam + emote
+  ctx.font='600 12px "Atkinson Hyperlegible", sans-serif';ctx.textAlign='center';
+  ctx.fillStyle='rgba(15,20,17,.7)';const w=ctx.measureText(NAME[id]).width+10;ctx.fillRect(x-w/2,y+6,w,15);
+  ctx.fillStyle='#F2EBD9';ctx.fillText(NAME[id],x,y+17);
+  if(a.emote){const ey=y-(id==='tuk'?52:72)-10;ctx.fillStyle='#F7F1E1';ctx.beginPath();ctx.arc(x,ey,11,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(x-4,ey+9);ctx.lineTo(x,ey+16);ctx.lineTo(x+3,ey+9);ctx.fill();
+    ctx.fillStyle=a.emote==='!'?'#B5400F':'#1D231F';ctx.font='700 15px "Atkinson Hyperlegible", sans-serif';ctx.fillText(a.emote,x,ey+5);}
+  if(a.hurt||a.sick){ctx.fillStyle='#B5400F';ctx.font='700 11px "IBM Plex Mono", monospace';ctx.fillText(a.hurt?'gewond':'ziek',x,y+33);}
+}
+
+function currentSnap(ts){
+  if(!view.to) return view.cur;
+  const k=Math.min(1,(ts-view.start)/view.dur), e=ease(k);
+  const out={...view.to,actors:{}};
+  ACT.forEach(id=>{const f=view.from.actors[id],t=view.to.actors[id];out.actors[id]={...t,x:lerp(f.x,t.x,e),y:lerp(f.y,t.y,e),emote:k>.35?t.emote:f.emote,carry:k>.6?t.carry:f.carry};});
+  if(k>=1){view.cur=view.to;view.to=null;}
+  return out;
+}
+function loop(ts){drawScene(ts);requestAnimationFrame(loop);}
+
+/* ---------------- UI ---------------- */
+const $=id=>document.getElementById(id);
+let scenKey='rook', booted=false, running=false, lastRun=null, aiChat=[], aiCtl=null;
+const drafts={};
+
+function legendFor(key){
+  const f=SCEN[key].f, items=['kamp','bos','rivier'];
+  if(f.berries)items.push('struik'); if(f.tracks)items.push('spoor'); items.push('heuvel'); if(f.fire)items.push('vuur');
+  $('legend').innerHTML=items.map(i=>`<span>${i}</span>`).join('');
+}
+function renderNav(){
+  $('missies').innerHTML=ORDER.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===scenKey}"><span class="n">${SCEN[k].nr}</span>${SCEN[k].titel.replace('Eindopdracht: de hele dag','Eindopdracht')}</button>`).join('');
+  $('missies').querySelectorAll('button').forEach(b=>b.onclick=()=>selectScen(b.dataset.k));
+}
+function selectScen(k){
+  if(running) return;
+  if(booted) drafts[scenKey]=$('instr').value;
+  booted=true;
+  scenKey=k; view.scenKey=k; renderNav(); legendFor(k);
+  const sc=SCEN[k];
+  $('mNr').textContent= k==='vrij'?'Eindopdracht':'Missie '+sc.nr;
+  $('mTitel').textContent=sc.titel; $('mOpdracht').textContent=sc.opdracht;
+  $('twist').hidden=true;
+  $('instr').value = drafts[k] ?? sc.voorbeeld;
+  $('rubricBox').hidden = k!=='vrij'; updateRubric();
+  resetWorld(); clearResults();
+  $('status').textContent = drafts[k]===undefined ? 'Voorbeeld van een eerste poging. Speel het af of schrijf je eigen tekst.' : '';
+}
+function resetWorld(){view.cur=snap(newState(scenKey));view.to=null;}
+function clearResults(){
+  $('log').innerHTML='<li class="empty" style="display:block">Nog niets gebeurd. Druk op ‘Speel af’.</li>';
+  $('outcome').innerHTML='';
+  $('mirror').innerHTML='<li class="empty" style="border:0;padding:0">Speel een instructie af. Hier verschijnt welke woorden werkten en welke niet.</li>';
+  $('reflect').hidden=true; $('qs').innerHTML=''; $('chat').innerHTML=''; $('chatform').hidden=true; aiChat=[]; lastRun=null; updateAIButton();
+}
+function updateRubric(){
+  if(scenKey!=='vrij') return;
+  $('rubric').innerHTML=rubric($('instr').value).map(([n,ok])=>`<span class="${ok?'ja':''}">${ok?'✓ ':''}${n}</span>`).join('');
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+async function play(){
+  if(running) return;
+  const text=$('instr').value.trim();
+  resetWorld(); clearResults(); $('status').textContent='';
+  const res=simulate(text,scenKey);
+  running=true; $('play').disabled=true; $('reset').disabled=true;
+  $('log').innerHTML='';
+  const dur=REDUCED?150:1150;
+  for(const b of res.beats){
+    view.from=currentSnap(performance.now()); view.to=b.snap; view.start=performance.now(); view.dur=dur;
+    const li=document.createElement('li'); li.className=b.kind;
+    li.innerHTML=`<span class="t">t ${b.t}</span><span class="x">${esc(b.text)}</span>`;
+    $('log').appendChild(li); li.scrollIntoView({block:'nearest'});
+    await new Promise(r=>setTimeout(r,dur+(REDUCED?50:350)));
+  }
+  view.cur=res.beats.length?res.beats[res.beats.length-1].snap:view.cur; view.to=null;
+  $('outcome').innerHTML=`<div class="outcome ${res.goal.s==='ok'?'ok':res.goal.s==='nee'?'nee':'open'}">${esc(res.goal.msg)}</div>`;
+  renderMirror(res.flags);
+  running=false; $('play').disabled=false; $('reset').disabled=false;
+  lastRun={text,res,key:scenKey}; addTry(lastRun); updateAIButton();
+}
+const SOORT={anachronisme:'Bestond dat al?',letterlijk:'Letterlijk genomen',gevaar:'Gevaar',vaag:'Vaag verwijswoord',wie:'Wie?',waarheen:'Waar?',incompleet:'Onvolledig',onbekend:'Geen handeling',vergeten:'Vergeten personage',sterk:'Dit werkte'};
+function renderMirror(flags){
+  if(!flags.length){$('mirror').innerHTML='<li data-soort="sterk"><span class="tag">Dit werkte</span><span>De stam begreep elke stap. Kun je het nog preciezer, of met minder woorden?</span></li>';$('reflect').hidden=false;return;}
+  const sorted=flags.slice().sort((a,b)=>(a.soort==='sterk')-(b.soort==='sterk'));
+  $('mirror').innerHTML=sorted.map(f=>`<li data-soort="${f.soort}"><span class="tag">${SOORT[f.soort]||f.soort}</span>${f.citaat?`<span>Je schreef <q class="cite">${esc(f.citaat)}</q></span>`:''}<span>${esc(f.vraag)}</span></li>`).join('');
+  $('reflect').hidden=false;
+}
+
+/* pogingenlog (alleen deze browser) */
+let tries=[]; try{tries=JSON.parse(localStorage.getItem('vs_tries')||'[]');}catch(e){tries=[];}
+function saveTries(){try{localStorage.setItem('vs_tries',JSON.stringify(tries.slice(-200)));}catch(e){}}
+function addTry(r){tries.push({k:r.key,text:r.text,s:r.res.goal.s,msg:r.res.goal.msg,flags:r.res.flags.map(f=>SOORT[f.soort]||f.soort),at:new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})});saveTries();renderTries();}
+function renderTries(){
+  if(!tries.length){$('tries').innerHTML='<tr><td colspan="5" class="empty">Nog geen pogingen. Elke keer dat iemand ‘Speel af’ drukt, komt hier een regel bij.</td></tr>';return;}
+  $('tries').innerHTML=tries.map((t,i)=>`<tr><td>${i+1}<br><span class="note">${t.at}</span></td><td>${SCEN[t.k].nr}</td><td>${esc(t.text)}</td><td><span class="pill ${t.s==='ok'?'ok':t.s==='nee'?'nee':'open'}">${t.s==='ok'?'gelukt':t.s==='nee'?'mislukt':'onaf'}</span></td><td>${esc([...new Set(t.flags)].join(', '))}</td></tr>`).reverse().join('');
+}
+$('copyLog').onclick=()=>{
+  const txt=tries.map((t,i)=>`${i+1}. [${t.at}] Missie ${SCEN[t.k].nr} (${SCEN[t.k].titel})\nTekst: ${t.text}\nUitkomst: ${t.msg}\nSpiegel: ${[...new Set(t.flags)].join(', ')||'-'}`).join('\n\n');
+  const fb=()=>{$('copyFallback').hidden=false;$('copyFallback').value=txt;$('copyFallback').select();$('copyNote').textContent='Kopiëren lukte niet automatisch. Selecteer de tekst hieronder.';};
+  try{navigator.clipboard.writeText(txt).then(()=>{$('copyNote').textContent='Gekopieerd naar het klembord.';},fb);}catch(e){fb();}
+};
+$('clearLog').onclick=()=>{ if($('clearLog').dataset.sure){tries=[];saveTries();renderTries();$('clearLog').textContent='Wis lijst';delete $('clearLog').dataset.sure;} else {$('clearLog').dataset.sure='1';$('clearLog').textContent='Zeker weten? Klik nog eens';setTimeout(()=>{$('clearLog').textContent='Wis lijst';delete $('clearLog').dataset.sure;},4000);} };
+
+/* wendingen */
+const twistIdx={};
+async function newTwist(){
+  const sc=SCEN[scenKey];
+  if(sampleFn){
+    $('twistBtn').disabled=true; $('twist').hidden=false; $('twist').textContent='Een nieuwe wending wordt bedacht…';
+    try{
+      const r=await sampleFn.json(`Je ontwerpt variaties voor een taalles in groep 8. Leerlingen schrijven instructies voor een prehistorische stam (Oka de jager, Mira de verzamelaar, Tuk het kind). Missie: "${sc.titel}". ${sc.opdracht}
+Bedenk één nieuwe wending die past bij de logica van de prehistorische wereld en die leerlingen dwingt hun instructie preciezer te maken (personage, volgorde, voorwaarde of woordkeus). Gebruik geen moderne dingen. Geef niet aan wat de goede instructie is.
+Eerdere wendingen (niet herhalen): ${sc.twists.join(' | ')}
+Antwoord met alleen JSON: {"wending":"max 2 korte zinnen","vraag":"één vraag aan de leerling, max 15 woorden"}`,{modelTier:'quick',cache:false});
+      if(r&&r.wending){$('twist').innerHTML=`<b>Wending.</b> ${esc(r.wending)} <i>${esc(r.vraag||'')}</i>`;$('twistBtn').disabled=false;return;}
+    }catch(e){/* val terug op vaste wendingen */}
+    $('twistBtn').disabled=false;
+  }
+  twistIdx[scenKey]=((twistIdx[scenKey]??-1)+1)%sc.twists.length;
+  $('twist').hidden=false; $('twist').innerHTML=`<b>Wending.</b> ${esc(sc.twists[twistIdx[scenKey]])} <i>Wat verandert er aan je instructie?</i>`;
+}
+
+/* ---------------- GenAI: taal op taal ---------------- */
+let sampleFn=null;
+function updateAIButton(){ $('askAI').disabled = !sampleFn || !lastRun || running; }
+function aiContext(){
+  const r=lastRun, sc=SCEN[r.key];
+  const log=r.res.beats.map(b=>`t${b.t}: ${b.text}`).join('\n');
+  const fl=r.res.flags.map(f=>`- ${SOORT[f.soort]}: "${f.citaat}"`).join('\n')||'- geen';
+  const tw=$('twist').hidden?'':`\nWending die de leerkracht net gaf: ${$('twist').textContent}`;
+  return `Je bent een taalcoach in een les voor groep 8 (11-12 jaar). Leerlingen schrijven instructies aan een prehistorische stam in een simulatie: Oka (jager, speer), Mira (verzamelaar, mand) en Tuk (kind). De stam doet letterlijk wat er staat. Woorden die in de prehistorie niet bestaan, begrijpt de stam niet.
+Jouw rol is FRICTIE geven, geen antwoorden. Herschrijf de tekst van de leerling nooit, geef nooit een goede instructie of oplossing, en zeg niet wat er fout ging. Stel vragen die de leerling dwingen eigen woorden te verfijnen. Gebruik eenvoudig Nederlands (niveau groep 8), spreek de leerling aan met 'je'.
+Missie: ${sc.titel}. ${sc.opdracht}${tw}
+Tekst van de leerling: """${r.text.slice(0,2000)}"""
+Wat er in de simulatie gebeurde:
+${log.slice(0,3000)}
+Uitkomst: ${r.res.goal.msg}
+Opvallende plekken in de tekst:
+${fl}`;
+}
+async function askAI(){
+  if(!sampleFn||!lastRun) return;
+  aiCtl=new AbortController(); $('askAI').disabled=true; $('stopAI').hidden=false;
+  $('qs').innerHTML='<p class="note">Bezig met nadenken…</p>'; $('chat').innerHTML=''; $('chatform').hidden=true; aiChat=[]; $('aiNote').textContent='';
+  const prompt=aiContext()+`
+
+Geef precies drie vragen:
+1. ambiguïteit: citeer letterlijk een stukje uit de tekst dat op twee manieren te lezen is, en vraag welke betekenis de leerling bedoelt (bijvoorbeeld: Je zegt 'pak het vuur', bedoel je een brandende tak of gloeiende houtskool?).
+2. tegenvoorbeeld: verander één ding in de wereld en vraag wat er dan aan de instructie verandert (bijvoorbeeld: Als het vuur heilig is voor de buurstam, wat verandert er dan aan je instructie?).
+3. redeneerlijn: vraag welke voorwaarde eerst moet kloppen of welke volgorde nodig is.
+Elke vraag maximaal 25 woorden. Antwoord met alleen JSON:
+{"ambiguiteit":{"citaat":"letterlijk stukje uit de tekst","vraag":"..."},"tegenvoorbeeld":{"vraag":"..."},"redeneerlijn":{"vraag":"..."}}`;
+  try{
+    const r=await sampleFn.json(prompt,{signal:aiCtl.signal,modelTier:'default'});
+    const items=[['Twee betekenissen',r?.ambiguiteit],['Wat als…',r?.tegenvoorbeeld],['Eerst dit, dan dat',r?.redeneerlijn]].filter(x=>x[1]&&x[1].vraag);
+    if(!items.length) throw {code:'invalid_json'};
+    $('qs').innerHTML=items.map(([t,o])=>`<div class="q"><span class="tag">${t}</span><div>${o.citaat?`<q class="cite">${esc(o.citaat)}</q> `:''}${esc(o.vraag)}</div></div>`).join('');
+    aiChat=[{role:'user',content:aiContext()+`\n\nJe stelde de leerling deze vragen:\n${items.map(([t,o])=>'- '+o.vraag).join('\n')}\n\nDe leerling gaat nu antwoorden. Reageer telkens in maximaal twee korte zinnen: bevraag het antwoord verder, vraag om een preciezer woord of een voorwaarde, en eindig met een vraag. Geef nooit de oplossing en schrijf de instructie niet voor de leerling. Als de leerling een betere formulering bedenkt, zeg dan alleen dat ze die in de simulatie kunnen testen.`}];
+    $('chatform').hidden=false;
+  }catch(e){ $('qs').innerHTML=''; aiFail(e); }
+  finally{ $('stopAI').hidden=true; updateAIButton(); }
+}
+function aiFail(e){
+  const code=e&&e.code;
+  if(code==='cancelled') return;
+  if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(code)){sampleFn=null;$('aiNote').textContent='GenAI staat uit voor deze pagina. De simulatie en de taalspiegel werken gewoon door.';updateAIButton();return;}
+  $('aiNote').textContent = code==='rate_limited'?'Even te veel vragen tegelijk. Probeer het over een minuut opnieuw.':code==='invalid_json'?'Het antwoord kwam niet goed door. Druk nog eens op ‘Vraag terug’.':'Er ging iets mis met de verbinding. Probeer het opnieuw.';
+}
+$('chatform').addEventListener('submit',async ev=>{
+  ev.preventDefault(); const v=$('chatIn').value.trim(); if(!v||!sampleFn) return;
+  $('chatIn').value=''; const me=document.createElement('div');me.className='me';me.textContent=v;$('chat').appendChild(me);
+  const ai=document.createElement('div');ai.className='ai';ai.textContent='…';$('chat').appendChild(ai);
+  aiChat.push({role:'user',content:v});
+  aiCtl=new AbortController(); $('stopAI').hidden=false;
+  try{
+    const turns=[aiChat[0],...aiChat.slice(1).slice(-10)];
+    const {text}=await sampleFn(turns,{cache:false,modelTier:'quick',signal:aiCtl.signal,onText:({text})=>{ai.textContent=text;}});
+    aiChat.push({role:'assistant',content:text});
+  }catch(e){ ai.textContent=e&&e.text?e.text:''; if(!ai.textContent) ai.remove(); aiChat.pop(); aiFail(e); }
+  finally{$('stopAI').hidden=true;}
+});
+$('stopAI').onclick=()=>aiCtl&&aiCtl.abort();
+
+/* ---------------- Start ---------------- */
+$('play').onclick=play;
+$('reset').onclick=()=>{ if(!running){resetWorld();clearResults();} };
+$('twistBtn').onclick=newTwist;
+$('askAI').onclick=askAI;
+$('instr').addEventListener('input',updateRubric);
+$('instr').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();play();}});
+renderNav(); renderTries(); selectScen('rook');
+requestAnimationFrame(loop);
+
+(async()=>{
+  try{
+    const s = window.claude && typeof window.claude.use==='function' ? await window.claude.use('sample') : null;
+    if(s){ sampleFn=s; updateAIButton(); }
+    else { $('genaiIntro').textContent='De GenAI-laag werkt wanneer deze pagina in Claude wordt geopend. De simulatie, de taalspiegel en de wendingen werken overal.'; $('askAI').hidden=true; }
+  }catch(e){ $('askAI').hidden=true; }
+})();
+</script>
+</body>
+</html>

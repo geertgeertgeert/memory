@@ -185,3 +185,14 @@
     </script>
 </body>
 </html>
+
+## Vuur & Spoor (`vuur-en-spoor.html`)
+
+Taalsimulatie voor groep 7–8, uitgewerkt naar het artikel *AI als bron van frictie* (Geert Vermeegen). Leerlingen schrijven instructies voor een prehistorische stam (Oka, Mira, Tuk); de stam antwoordt met gedrag en voert alles letterlijk uit.
+
+- **4 missies**: Rook achter de heuvel · Water in de pootafdruk · De bessenstruik · Eindopdracht (uitgebreide prompt met checklist).
+- **Taalspiegel**: benoemt anachronismen (*fabriek*), letterlijke lezingen (*pak het vuur*), vage verwijswoorden, ontbrekende personages/plekken en onvolledige instructies, steeds als vraag aan de leerling.
+- **Taal op taal (GenAI)**: alleen actief als de pagina in Claude wordt geopend; stelt drie vragen (ambiguïteit, tegenvoorbeeld, redeneerlijn) en schrijft de tekst nooit voor.
+- **Leerkrachtdeel**: lesverloop, gespreksvragen en een lijst met alle pogingen (kopieerbaar).
+
+Open het bestand gewoon in een browser; er is geen server of API-sleutel nodig.
