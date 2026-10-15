@@ -6,40 +6,36 @@
 <title>Speelkaart · Kerndoelenbingo</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
-@page { size: A4 landscape; margin: 0; }
-:root { --paars: #92278F; --donker: #57257C; --blauw: #7598C0; --inkt: #1F1A24; --grijs: #5A5560; }
+/* A3 liggend, vakken van precies 76 × 76 mm (standaard Post-it). Afdrukken op werkelijke grootte. */
+@page { size: A3 landscape; margin: 0; }
+:root { --paars: #92278F; --donker: #57257C; --blauw: #7598C0; --inkt: #1F1A24; --grijs: #5A5560; --lijn: #D9D4DE; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: #FFFFFF; color: var(--inkt); font-family: "Atkinson Hyperlegible", system-ui, sans-serif; }
-.blad { width: 297mm; height: 210mm; padding: 10mm 12mm; display: flex; flex-direction: column; gap: 4mm; margin: 0 auto; }
-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; }
-h1 { margin: 0; font-size: 26pt; color: var(--donker); }
-header p { margin: 0; font-size: 12pt; }
-.team { font-weight: 700; font-size: 13pt; display: flex; gap: 3mm; align-items: flex-end; }
-.team span { display: inline-block; width: 70mm; border-bottom: 2px solid var(--inkt); height: 7mm; }
-.rijen { flex-grow: 1; display: flex; flex-direction: column; gap: 3mm; }
-.rij { flex: 1 1 0; display: grid; grid-template-columns: 46mm repeat(3, minmax(0, 1fr)); gap: 3mm; }
-.rij h2 { margin: 0; font-size: 15pt; display: flex; flex-direction: column; justify-content: center; gap: 2mm; padding-left: 4mm; border-left: 2.5mm solid; }
-.teken { width: 6mm; height: 6mm; display: inline-block; }
-.vak { color: var(--inkt); border: 2px solid var(--inkt); border-radius: 3mm; padding: 3mm; display: flex; flex-direction: column; gap: 2mm; }
-.boek { display: flex; gap: 3mm; align-items: center; font-size: 11pt; font-weight: 700; }
-.boek .lijn { flex-grow: 1; border-bottom: 1.5px solid var(--grijs); height: 5mm; }
-.bal { flex: none; width: 12mm; height: 12mm; border-radius: 50%; border: 1.6mm solid; background: #FFFFFF; }
-.vak p { margin: 0; font-size: 11pt; color: var(--grijs); }
-.vak .schrijf { border-bottom: 1.5px solid #B8B0C0; height: 5mm; }
-.C { color: var(--paars); } .C .teken, .C .bal { background-color: var(--paars); }
-.L { color: var(--blauw); } .L .teken { background: var(--blauw); transform: rotate(45deg) scale(.85); }
-.T { color: var(--donker); } .T .teken { background: var(--donker); border-radius: 50%; }
-.C .teken { border-radius: 1mm; }
-.rij h2 { color: var(--inkt); border-color: currentColor; }
-.rij.C h2 { border-color: var(--paars); } .rij.L h2 { border-color: var(--blauw); } .rij.T h2 { border-color: var(--donker); }
-.rij .bal { background: #FFFFFF; }
-.rij.C .bal { border-color: var(--paars); } .rij.L .bal { border-color: var(--blauw); } .rij.T .bal { border-color: var(--donker); }
-footer { display: flex; justify-content: space-between; gap: 8mm; font-size: 10.5pt; color: var(--grijs); border-top: 1px solid #D9D4DE; padding-top: 2.5mm; }
-footer p { margin: 0; } footer b { color: var(--inkt); }
+.blad { width: 420mm; height: 297mm; padding: 10mm 12mm; margin: 0 auto; display: flex; flex-direction: column; gap: 5mm; background: #FFFFFF; }
+header { height: 18mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; }
+h1 { margin: 0; font-size: 26pt; color: var(--donker); line-height: 1.05; }
+header p { margin: 1mm 0 0; font-size: 12pt; }
+.rechts { display: flex; flex-direction: column; align-items: flex-end; gap: 2mm; }
+.team { font-weight: 700; font-size: 14pt; display: flex; gap: 3mm; align-items: flex-end; margin: 0; }
+.team span { display: inline-block; width: 80mm; border-bottom: 2px solid var(--inkt); height: 8mm; }
+.maat { font-size: 9pt; color: var(--grijs); display: flex; align-items: center; gap: 2mm; margin: 0; }
+.maat i { display: inline-block; width: 50mm; height: 2.5mm; border: 1px solid var(--inkt); border-top: none; }
+.rijen { display: flex; flex-direction: column; gap: 4mm; }
+.rij { display: grid; grid-template-columns: 44mm repeat(3, minmax(0, 1fr)); gap: 5mm; height: 80mm; }
+.rij h2 { margin: 0; font-size: 16pt; display: flex; flex-direction: column; justify-content: center; gap: 2.5mm; padding-left: 4mm; border-left: 3mm solid; }
+.teken { width: 7mm; height: 7mm; display: inline-block; }
+.vak { display: flex; gap: 3mm; align-items: stretch; }
+.postit { flex: none; width: 76mm; height: 76mm; margin-top: 2mm; border: 0.7mm dashed; border-radius: 1.5mm; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2mm; text-align: center; color: var(--grijs); font-size: 10pt; padding: 4mm; }
+.postit b { font-size: 11pt; color: var(--inkt); }
+.boek { flex: 1 1 auto; min-width: 0; margin-top: 2mm; display: flex; flex-direction: column; gap: 6mm; font-size: 11pt; font-weight: 700; }
+.boek span { border-bottom: 1.5px solid var(--grijs); height: 6mm; }
+.C h2 { border-color: var(--paars); } .C .teken { background: var(--paars); border-radius: 1.2mm; } .C .postit { border-color: var(--paars); }
+.L h2 { border-color: var(--blauw); } .L .teken { background: var(--blauw); transform: rotate(45deg) scale(.85); } .L .postit { border-color: var(--blauw); }
+.T h2 { border-color: var(--donker); } .T .teken { background: var(--donker); border-radius: 50%; } .T .postit { border-color: var(--donker); }
 .knop { position: fixed; right: 16px; bottom: 16px; min-height: 48px; padding: 8px 20px; border: none; border-radius: 10px; background: var(--paars); color: #FFFFFF; font: inherit; font-weight: 700; font-size: 18px; cursor: pointer; }
 .knop:focus-visible { outline: 3px solid #1D4ED8; outline-offset: 3px; }
 @media print { .knop { display: none; } }
-@media screen { body { background: #F6F3F8; padding: 16px 0; } .blad { background: #FFFFFF; box-shadow: 0 2px 12px rgba(31,26,36,.15); } }
+@media screen { body { background: #F6F3F8; padding: 16px 0; } .blad { box-shadow: 0 2px 12px rgba(31,26,36,.15); } }
 </style>
 </head>
 <body>
@@ -47,19 +43,19 @@ footer p { margin: 0; } footer b { color: var(--inkt); }
   <header>
     <div>
       <h1>Kerndoelenbingo · speelkaart</h1>
-      <p>Leg jullie boeken in deze rijen. Een bal past bij <b>elk</b> boek in zijn rij.</p>
+      <p>Een bal past bij <b>elk</b> boek in zijn rij. Past een boek? Schrijf de code en je zin op een Post-it en plak hem op het vak.</p>
     </div>
-    <p class="team">Team <span aria-hidden="true"></span></p>
+    <div class="rechts">
+      <p class="team">Team <span aria-hidden="true"></span></p>
+      <p class="maat"><i aria-hidden="true"></i> controle: deze lijn is 5 cm (afdrukken op A3, werkelijke grootte)</p>
+    </div>
   </header>
   <div class="rijen" id="rijen"></div>
-  <footer>
-    <p><b>Bingo</b> = rij, kolom of diagonaal. Een kolom is één boek uit elk domein: samenhang.</p>
-    <p><b>Gespreksbal 1A of 1B:</b> geen boek, bespreek hoe jullie school hiervoor zorgt.</p>
-  </footer>
 </main>
 <button class="knop" type="button" onclick="window.print()">Afdrukken</button>
 <script>
-  var vak = '<div class="vak"><div class="boek">Boek <span class="lijn"></span><span class="bal" aria-label="Kerndoel"></span></div><p>Een kind leert hiermee …</p><span class="schrijf"></span><span class="schrijf"></span></div>';
+  var vak = '<div class="vak"><div class="postit"><b>Plak hier je Post-it</b><span>code<br>+<br>“Een kind leert hiermee …”</span></div>' +
+    '<div class="boek">Boek<span></span><span></span><span></span></div></div>';
   document.getElementById("rijen").innerHTML = [["C", "Communicatie"], ["L", "Literatuur"], ["T", "Taal"]].map(function (r) {
     return '<section class="rij ' + r[0] + '" aria-label="' + r[1] + '"><h2><span class="teken" aria-hidden="true"></span>' + r[1] + '</h2>' + vak + vak + vak + '</section>';
   }).join("");
