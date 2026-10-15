@@ -1,14 +1,10 @@
-ok  standaardpool: 3 per domein, alleen Nederlands
+ok  17 subdoelen Nederlands, kerndoel 1 niet
+ok  rijvolgorde zoals op tafel: Communicatie, Literatuur, Taal
+ok  standaardpool: 3 per domein
+ok  pool met 4 + 2 is ongeldig
 ok  drawBall trekt elke bal precies één keer
-ok  rij
-ok  kolom
-ok  diagonaal
-ok  geen lijn bij twee vakjes
-ok  kerndoel niet dubbel
-ok  boek niet dubbel
-ok  onderbouwing verplicht
-ok  terugdraaien maakt vakje vrij
-ok  volle kaart
-ok  samenhang: domeinen in een lijn
+ok  drawBall kiest alleen uit wat nog in de molen zit
+ok  elke bal heeft een eigen plek in het 3×3-rekje
+ok  rij in rekje = domein van de bal
 
-12 tests geslaagd
+8 tests geslaagd

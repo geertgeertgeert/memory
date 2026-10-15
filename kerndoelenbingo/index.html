@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kerndoelenbingo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
 :root {
   --paars: #92278F;
   --donker: #57257C;
   --blauw: #7598C0;
-  --blauw-tekst: #3D5F87;   /* blauw donker genoeg voor tekst (6,4:1) */
+  --blauw-tekst: #3D5F87;
   --inkt: #1F1A24;
-  --grijs: #5A5560;          /* 7:1 op wit */
+  --grijs: #5A5560;
   --lijn: #D9D4DE;
   --vlak: #F6F3F8;
   --wit: #FFFFFF;
@@ -21,83 +21,100 @@
   --fout: #A3231F;
   --focus: #1D4ED8;
   --r: 10px;
+  --bal: 84px;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html { background: var(--wit); }
+html, body { background: var(--wit); }
 body {
-  margin: 0; background: var(--wit); color: var(--inkt);
+  margin: 0; color: var(--inkt);
   font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 18px; line-height: 1.45;
+  font-size: 18px; line-height: 1.4;
 }
 h1, h2, h3, p { margin: 0; }
-button, input, textarea { font: inherit; color: inherit; }
+button, input { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.skip { position: absolute; left: 16px; top: -60px; background: var(--donker); color: #fff; padding: 10px 14px; border-radius: var(--r); z-index: 10; }
-.skip:focus { top: 12px; }
 [hidden] { display: none !important; }
 
-/* knoppen */
 .btn {
-  min-height: 48px; padding: 10px 18px; border-radius: var(--r);
+  min-height: 48px; padding: 8px 18px; border-radius: var(--r);
   border: 2px solid var(--paars); background: var(--wit); color: var(--paars);
   font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
 .btn:hover { background: var(--vlak); }
 .btn.primair { background: var(--paars); color: #fff; }
 .btn.primair:hover { background: var(--donker); border-color: var(--donker); }
-.btn.groot { min-height: 64px; font-size: 24px; padding: 12px 28px; }
+.btn.groot { min-height: 64px; font-size: 24px; padding: 10px 28px; width: 100%; }
 .btn.stil { border-color: var(--lijn); color: var(--inkt); }
+.btn.gevaar { background: var(--fout); border-color: var(--fout); color: #fff; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn[aria-pressed="true"].ja { background: var(--goed); border-color: var(--goed); color: #fff; }
 .btn[aria-pressed="true"].nee { background: var(--fout); border-color: var(--fout); color: #fff; }
 .icoon { width: 22px; height: 22px; flex: none; }
-
-.wrap { max-width: 1440px; margin: 0 auto; padding: 16px; }
-.kop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--lijn); }
-.kop h1 { font-size: 22px; color: var(--donker); }
 .rij { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
-/* domeinlabels: kleur + tekst, nooit alleen kleur */
-.dom { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; padding: 2px 10px; border-radius: 999px; border: 2px solid currentColor; }
-.dom::before { content: ""; width: 10px; height: 10px; border-radius: 2px; background: currentColor; }
-.d-Communicatie { color: var(--paars); }
-.d-Taal { color: var(--donker); }
-.d-Taal::before { border-radius: 50%; }
-.d-Literatuur { color: var(--blauw-tekst); }
-.d-Literatuur::before { transform: rotate(45deg); }
-
-/* keuzescherm */
-.keuze { min-height: 100vh; display: grid; place-content: center; gap: 24px; text-align: center; padding: 16px; }
-.keuze h1 { font-size: clamp(36px, 7vw, 64px); color: var(--donker); }
-.keuze .rij { justify-content: center; }
-.keuze a.btn { text-decoration: none; min-width: 240px; }
-
-/* trainer */
-.tr-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 440px); gap: 24px; padding-top: 20px; }
-@media (max-width: 900px) { .tr-grid { grid-template-columns: minmax(0, 1fr); } }
-.bal { border: 2px solid var(--lijn); border-radius: 18px; padding: clamp(20px, 4vw, 48px); min-height: 380px; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
-.bal-code { font-size: clamp(56px, 9vw, 120px); font-weight: 700; line-height: 1; color: var(--paars); font-variant-numeric: tabular-nums; }
-.bal-titel { font-size: clamp(36px, 4.4vw, 60px); line-height: 1.1; font-weight: 700; color: var(--inkt); }
-.bal-zin { font-size: clamp(22px, 2.2vw, 32px); color: var(--inkt); max-width: 34ch; }
-.bal-ouder { font-size: 20px; color: var(--grijs); }
-.bal.leeg .bal-titel { color: var(--grijs); font-weight: 400; }
+/* opbouw: kop · molen | rekje · huidige bal */
+.scherm { max-width: 1440px; margin: 0 auto; padding: 12px 20px; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; }
+.kop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.kop h1 { font-size: 30px; color: var(--donker); }
+.klok { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--donker); }
 .teller { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.klok { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--donker); }
-.paneel { border: 1px solid var(--lijn); border-radius: 14px; padding: 16px; }
-.paneel + .paneel { margin-top: 16px; }
-.paneel h2 { font-size: 18px; color: var(--donker); margin-bottom: 10px; }
-.samenhang { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.samenhang h3 { font-size: 15px; margin-bottom: 6px; }
-.slot { border: 2px dashed var(--lijn); border-radius: 8px; padding: 6px 8px; margin-bottom: 6px; font-size: 15px; line-height: 1.25; color: var(--grijs); min-height: 54px; }
-.slot b { display: block; font-size: 18px; }
-.slot.getrokken { border-style: solid; border-color: currentColor; color: var(--inkt); background: var(--vlak); }
-.slot.nu { outline: 3px solid var(--paars); outline-offset: 1px; }
-.lijst { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 16px; }
-.lijst li { display: flex; gap: 8px; }
-.lijst .nr { color: var(--grijs); min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
-.leeg-tekst { color: var(--grijs); font-size: 16px; }
+.speelveld { display: grid; grid-template-columns: minmax(260px, 380px) minmax(0, 1fr); gap: 32px; align-items: center; }
+@media (max-width: 860px) { .speelveld { grid-template-columns: minmax(0, 1fr); } :root { --bal: 64px; } }
+
+/* molen */
+.molen { display: grid; gap: 12px; justify-items: center; }
+#molen-art svg { width: 100%; max-width: 330px; max-height: 42vh; height: auto; overflow: visible; }
+.kooi { transform-box: view-box; transform-origin: 180px 160px; }
+.mbal { transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .draait .kooi { animation: draai .9s cubic-bezier(.3,.1,.3,1); }
+  .draait .zwengel { animation: draai .9s cubic-bezier(.3,.1,.3,1); transform-box: view-box; transform-origin: 300px 160px; }
+  .draait .mbal { animation: tuimel .3s ease-in-out infinite alternate; }
+  .draait .mbal:nth-child(2n) { animation-duration: .23s; animation-direction: alternate-reverse; }
+  .draait .mbal:nth-child(3n) { animation-duration: .37s; }
+  @keyframes draai { to { transform: rotate(720deg); } }
+  @keyframes tuimel { 0% { transform: translate(0,0) rotate(0); } 50% { transform: translate(-14px,-46px) rotate(-90deg); } 100% { transform: translate(12px,-22px) rotate(80deg); } }
+}
+
+/* rekje: rijen = domeinen, zoals de boeken op tafel */
+.rekje { background: var(--vlak); border: 2px solid var(--lijn); border-radius: 18px; padding: 16px 20px; display: grid; gap: 10px; }
+.rek-rij { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 12px; align-items: center; }
+.rek-rij + .rek-rij { border-top: 1px solid var(--lijn); padding-top: 10px; }
+.rek-label { font-weight: 700; font-size: 20px; display: flex; align-items: center; gap: 8px; }
+.gat { display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
+.kuil { width: var(--bal); height: var(--bal); border-radius: 50%; border: 3px dashed #B8B0C0; display: grid; place-items: center; color: var(--grijs); font-weight: 700; font-size: 18px; background: var(--wit); }
+.gat .onder { font-size: 15px; line-height: 1.2; color: var(--grijs); min-height: 2.4em; }
+.gat.vol .onder { color: var(--inkt); font-weight: 700; }
+@media (max-width: 860px) { .rek-rij { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rek-label { grid-column: 1 / -1; } }
+
+/* ballen */
+.bal { width: var(--bal); height: var(--bal); border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: calc(var(--bal) * .36); position: relative; box-shadow: inset -8px -10px 0 rgba(0,0,0,.18); }
+.bal::after { content: ""; position: absolute; top: 14%; left: 22%; width: 22%; height: 16%; border-radius: 50%; background: rgba(255,255,255,.55); }
+.bal span { background: var(--wit); color: var(--inkt); border-radius: 50%; width: 64%; height: 64%; display: grid; place-items: center; }
+.b-Communicatie { background: var(--paars); }
+.b-Literatuur { background: var(--blauw); }
+.b-Taal { background: var(--donker); }
+.bal.nu { outline: 4px solid var(--inkt); outline-offset: 4px; }
+.vlieg { position: fixed; left: 0; top: 0; z-index: 20; pointer-events: none; }
+
+/* domeinlabel: kleur + vorm + tekst */
+.dom-teken { width: 16px; height: 16px; flex: none; }
+.t-Communicatie { background: var(--paars); border-radius: 3px; }
+.t-Literatuur { background: var(--blauw); transform: rotate(45deg) scale(.85); }
+.t-Taal { background: var(--donker); border-radius: 50%; }
+
+/* huidige bal */
+.uitslag { border-top: 2px solid var(--lijn); padding-top: 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+.uitslag .bal { --bal: 112px; }
+.u-titel { font-size: clamp(32px, 3.8vw, 54px); font-weight: 700; line-height: 1.08; }
+.u-zin { font-size: clamp(20px, 1.9vw, 28px); }
+.u-meta { font-size: 18px; color: var(--grijs); }
+.u-leeg { font-size: 32px; color: var(--grijs); }
+.acties { display: grid; gap: 8px; justify-items: stretch; }
+.volgorde { font-size: 16px; color: var(--grijs); max-width: 280px; }
+@media (max-width: 860px) { .uitslag { grid-template-columns: minmax(0, 1fr); } }
 
 /* dialogen */
 dialog { border: none; border-radius: 16px; padding: 0; width: min(720px, calc(100vw - 24px)); max-height: calc(100vh - 24px); color: var(--inkt); }
@@ -111,93 +128,56 @@ dialog::backdrop { background: rgba(31, 26, 36, .55); }
 .status { font-weight: 700; min-height: 1.5em; }
 .status.goed { color: var(--goed); }
 .status.fout { color: var(--fout); }
-label { font-weight: 700; display: block; }
-.veld { width: 100%; min-height: 48px; padding: 10px 12px; border: 2px solid var(--grijs); border-radius: var(--r); background: #fff; }
-.veld:focus-visible { outline-offset: 1px; }
-textarea.veld { min-height: 96px; resize: vertical; }
-.hulp { font-size: 15px; color: var(--grijs); font-weight: 400; }
-.fout-tekst { color: var(--fout); font-size: 16px; font-weight: 700; }
-fieldset { border: 1px solid var(--lijn); border-radius: var(--r); padding: 10px 14px; margin: 0; }
-legend { font-weight: 700; padding: 0 6px; }
-.optie { display: flex; gap: 10px; align-items: flex-start; padding: 8px 4px; font-weight: 400; cursor: pointer; border-radius: 8px; }
+label { font-weight: 700; }
+.veld { width: 100%; min-height: 48px; padding: 10px 12px; border: 2px solid var(--grijs); border-radius: var(--r); background: #fff; display: block; margin-top: 4px; }
+.hulp { font-size: 16px; color: var(--grijs); }
+fieldset { border: 1px solid var(--lijn); border-radius: var(--r); padding: 8px 14px; margin: 0; }
+legend { font-weight: 700; padding: 0 6px; display: flex; align-items: center; gap: 8px; }
+.optie { display: flex; gap: 10px; align-items: flex-start; padding: 6px 4px; font-weight: 400; cursor: pointer; border-radius: 8px; }
 .optie:hover { background: var(--vlak); }
 .optie input { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--paars); }
-.optie.uit { color: var(--grijs); cursor: not-allowed; }
-.winnaar { text-align: center; padding: 48px 24px; display: grid; gap: 20px; }
+.winnaar { text-align: center; padding: 40px 24px; display: grid; gap: 20px; }
 .winnaar .groot-woord { font-size: clamp(48px, 10vw, 112px); font-weight: 700; color: var(--paars); line-height: 1; }
 .winnaar .naam { font-size: clamp(32px, 6vw, 64px); font-weight: 700; color: var(--donker); }
-
-/* team */
-.team { max-width: 560px; margin: 0 auto; padding: 16px; }
-.stap { color: var(--grijs); font-size: 16px; font-weight: 700; }
-.team h1 { font-size: 28px; color: var(--donker); margin: 4px 0 12px; }
-.formulier { display: grid; gap: 16px; }
-.boeken-invoer { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.boeken-invoer label { font-size: 14px; color: var(--grijs); }
-.boeken-invoer .veld { padding: 8px; font-size: 16px; }
-.kaart { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
-.vak {
-  aspect-ratio: 1 / 1.08; border: 2px solid var(--lijn); border-radius: 12px; background: var(--wit);
-  padding: 8px; display: flex; flex-direction: column; justify-content: space-between; text-align: left; cursor: pointer;
-  font-size: 15px; line-height: 1.2; overflow: hidden; min-height: 96px;
-}
-.vak:hover { border-color: var(--paars); }
-.vak .titel { font-weight: 700; overflow-wrap: anywhere; }
-.vak .open { color: var(--grijs); font-size: 14px; }
-.vak.gemarkeerd { background: var(--paars); border-color: var(--paars); color: #fff; }
-.vak.gemarkeerd .code { font-size: 26px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-.vak.gemarkeerd .dnaam { font-size: 13px; }
-.bingo-boek { border: 1px solid var(--lijn); border-radius: 12px; padding: 12px; display: grid; gap: 4px; }
-.bingo-boek .bt { font-size: 22px; font-weight: 700; }
-.bingo-kop { font-size: clamp(56px, 16vw, 96px); font-weight: 700; color: var(--paars); line-height: 1; text-align: center; }
-.kd-lijst { max-height: 38vh; overflow: auto; border: 1px solid var(--lijn); border-radius: var(--r); padding: 6px; }
-.kd-lijst h3 { font-size: 15px; margin: 8px 4px 2px; }
-details summary { cursor: pointer; padding: 8px 4px; font-weight: 700; min-height: 44px; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .bal-code.rolt { animation: pulse .12s ease-in-out infinite alternate; }
-  @keyframes pulse { from { opacity: .55; } to { opacity: 1; } }
-}
+.winnaars { font-size: 16px; color: var(--grijs); }
+.winnaars b { color: var(--inkt); }
 </style>
 </head>
 <body>
-<a class="skip" href="#inhoud">Naar de inhoud</a>
-<div id="live" class="sr" aria-live="polite" aria-atomic="true"></div>
+<div id="live" class="sr" aria-live="assertive" aria-atomic="true"></div>
 <div id="app"></div>
 
 <script>
 // LOGIC-START
 /* Bron: SLO, Kerndoelen primair onderwijs (juli 2026), leergebied Nederlands.
    Teksten letterlijk overgenomen. Kerndoel 1 (Overkoepelend) is een opdracht
-   aan de school, niet aan de leerling, en zit daarom niet in de bingo. */
+   aan de school, niet aan de leerling, en zit daarom niet in de molen. */
 var KERNDOELEN = [
-  { code: "2A", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Luisteren en lezen met begrip", doelzin: "De leerling toont begrip van zakelijke en literaire teksten.", bouw: ["ob","bb"] },
-  { code: "2B", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Luisteren en lezen met diep begrip", doelzin: "De leerling evalueert en reflecteert op zakelijke en literaire teksten.", bouw: ["ob","bb"] },
-  { code: "2C", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Bronnen verkennen", doelzin: "De leerling verkent de betrouwbaarheid van verschillende bronnen.", bouw: ["ob","bb"] },
-  { code: "3A", domein: "Communicatie", kerndoel: "De leerling produceert teksten.", titel: "Doelgericht spreken en schrijven", doelzin: "De leerling spreekt en schrijft afgestemd op doel, publiek en context.", bouw: ["ob","bb"] },
-  { code: "3B", domein: "Communicatie", kerndoel: "De leerling produceert teksten.", titel: "Creatief taal gebruiken", doelzin: "De leerling gebruikt taal op een creatieve manier.", bouw: ["ob","bb"] },
-  { code: "3C", domein: "Communicatie", kerndoel: "De leerling produceert teksten.", titel: "Schrijven om te leren", doelzin: "De leerling schrijft om tot kennisopbouw of begrip te komen.", bouw: ["ob","bb"] },
-  { code: "4A", domein: "Communicatie", kerndoel: "De leerling voert gesprekken.", titel: "Doelgericht gesprekken voeren", doelzin: "De leerling voert gesprekken afgestemd op doel, gesprekspartner(s) en context.", bouw: ["ob","bb"] },
-  { code: "4B", domein: "Communicatie", kerndoel: "De leerling voert gesprekken.", titel: "Gesprekken voeren om te leren", doelzin: "De leerling voert gesprekken om tot kennisopbouw, begrip of een aanpak te komen.", bouw: ["ob","bb"] },
-  { code: "5A", domein: "Communicatie", kerndoel: "De leerling ontwikkelt zich als bewuste taalgebruiker.", titel: "Reflecteren op taalactiviteiten", doelzin: "De leerling reflecteert op het proces en evalueert het product van een taalactiviteit.", bouw: ["ob","bb"] },
-  { code: "6A", domein: "Taal", kerndoel: "De leerling toont inzicht in taal als systeem.", titel: "Vorm en betekenis beschouwen", doelzin: "De leerling beschouwt de relatie tussen vorm en betekenis van taal.", bouw: ["ob","bb"] },
-  { code: "6B", domein: "Taal", kerndoel: "De leerling toont inzicht in taal als systeem.", titel: "Spelling, formulering en interpunctie", doelzin: "De leerling toont inzicht in regels en procedures voor spelling, formulering en interpunctie.", bouw: ["ob","bb"] },
-  { code: "7A", domein: "Taal", kerndoel: "De leerling verkent het gebruik van taal.", titel: "Talige identiteit", doelzin: "De leerling verkent hoe je met taal uiting geeft aan identiteit.", bouw: ["ob","bb"] },
-  { code: "7B", domein: "Taal", kerndoel: "De leerling verkent het gebruik van taal.", titel: "Taalvariatie en taalverandering", doelzin: "De leerling verkent taalvariatie en taalverandering in het Nederlandse taalgebied.", bouw: ["ob","bb"] },
-  { code: "8A", domein: "Literatuur", kerndoel: "De leerling doet ervaring op met literatuur.", titel: "Leesvoorkeur", doelzin: "De leerling ontwikkelt een eigen leesvoorkeur.", bouw: ["ob","bb"] },
-  { code: "8B", domein: "Literatuur", kerndoel: "De leerling doet ervaring op met literatuur.", titel: "Waarde van literatuur", doelzin: "De leerling verkent de waarde van literatuur.", bouw: ["ob","bb"] },
-  { code: "9A", domein: "Literatuur", kerndoel: "De leerling toont inzicht in literatuur.", titel: "Verhalende teksten", doelzin: "De leerling toont inzicht in verhalende teksten.", bouw: ["ob","bb"] },
-  { code: "9B", domein: "Literatuur", kerndoel: "De leerling toont inzicht in literatuur.", titel: "Literaire genres", doelzin: "De leerling toont inzicht in genrekenmerken van literatuur.", bouw: ["ob","bb"] }
+  { code: "2A", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Luisteren en lezen met begrip", doelzin: "De leerling toont begrip van zakelijke en literaire teksten." },
+  { code: "2B", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Luisteren en lezen met diep begrip", doelzin: "De leerling evalueert en reflecteert op zakelijke en literaire teksten." },
+  { code: "2C", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Bronnen verkennen", doelzin: "De leerling verkent de betrouwbaarheid van verschillende bronnen." },
+  { code: "3A", domein: "Communicatie", kerndoel: "De leerling produceert teksten.", titel: "Doelgericht spreken en schrijven", doelzin: "De leerling spreekt en schrijft afgestemd op doel, publiek en context." },
+  { code: "3B", domein: "Communicatie", kerndoel: "De leerling produceert teksten.", titel: "Creatief taal gebruiken", doelzin: "De leerling gebruikt taal op een creatieve manier." },
+  { code: "3C", domein: "Communicatie", kerndoel: "De leerling produceert teksten.", titel: "Schrijven om te leren", doelzin: "De leerling schrijft om tot kennisopbouw of begrip te komen." },
+  { code: "4A", domein: "Communicatie", kerndoel: "De leerling voert gesprekken.", titel: "Doelgericht gesprekken voeren", doelzin: "De leerling voert gesprekken afgestemd op doel, gesprekspartner(s) en context." },
+  { code: "4B", domein: "Communicatie", kerndoel: "De leerling voert gesprekken.", titel: "Gesprekken voeren om te leren", doelzin: "De leerling voert gesprekken om tot kennisopbouw, begrip of een aanpak te komen." },
+  { code: "5A", domein: "Communicatie", kerndoel: "De leerling ontwikkelt zich als bewuste taalgebruiker.", titel: "Reflecteren op taalactiviteiten", doelzin: "De leerling reflecteert op het proces en evalueert het product van een taalactiviteit." },
+  { code: "8A", domein: "Literatuur", kerndoel: "De leerling doet ervaring op met literatuur.", titel: "Leesvoorkeur", doelzin: "De leerling ontwikkelt een eigen leesvoorkeur." },
+  { code: "8B", domein: "Literatuur", kerndoel: "De leerling doet ervaring op met literatuur.", titel: "Waarde van literatuur", doelzin: "De leerling verkent de waarde van literatuur." },
+  { code: "9A", domein: "Literatuur", kerndoel: "De leerling toont inzicht in literatuur.", titel: "Verhalende teksten", doelzin: "De leerling toont inzicht in verhalende teksten." },
+  { code: "9B", domein: "Literatuur", kerndoel: "De leerling toont inzicht in literatuur.", titel: "Literaire genres", doelzin: "De leerling toont inzicht in genrekenmerken van literatuur." },
+  { code: "6A", domein: "Taal", kerndoel: "De leerling toont inzicht in taal als systeem.", titel: "Vorm en betekenis beschouwen", doelzin: "De leerling beschouwt de relatie tussen vorm en betekenis van taal." },
+  { code: "6B", domein: "Taal", kerndoel: "De leerling toont inzicht in taal als systeem.", titel: "Spelling, formulering en interpunctie", doelzin: "De leerling toont inzicht in regels en procedures voor spelling, formulering en interpunctie." },
+  { code: "7A", domein: "Taal", kerndoel: "De leerling verkent het gebruik van taal.", titel: "Talige identiteit", doelzin: "De leerling verkent hoe je met taal uiting geeft aan identiteit." },
+  { code: "7B", domein: "Taal", kerndoel: "De leerling verkent het gebruik van taal.", titel: "Taalvariatie en taalverandering", doelzin: "De leerling verkent taalvariatie en taalverandering in het Nederlandse taalgebied." }
 ];
-var DOMEINEN = ["Communicatie", "Taal", "Literatuur"];
-// Standaardpool: drie per domein, zodat elke rij op de kaart de samenhang kan laten zien.
-var STANDAARD_POOL = ["2A", "2B", "3B", "6A", "7A", "7B", "8B", "9A", "9B"];
-var LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-var PREFIX = "Een kind leert hiermee ";
+// Volgorde van de rijen op tafel, van boven naar onder.
+var DOMEINEN = ["Communicatie", "Literatuur", "Taal"];
+var STANDAARD_POOL = ["2A", "2B", "3B", "8B", "9A", "9B", "6A", "7A", "7B"];
 
 function kd(code) { for (var i = 0; i < KERNDOELEN.length; i++) if (KERNDOELEN[i].code === code) return KERNDOELEN[i]; return null; }
 
-// Trek een willekeurige bal uit de nog niet getrokken pool. Puur: geeft nieuwe lijst terug.
+// Trek een willekeurige bal uit de nog niet getrokken pool. Puur.
 function drawBall(pool, drawn, rnd) {
   var rest = pool.filter(function (c) { return drawn.indexOf(c) === -1; });
   if (!rest.length) return null;
@@ -205,41 +185,29 @@ function drawBall(pool, drawn, rnd) {
   return { ball: ball, drawn: drawn.concat([ball]) };
 }
 
-function emptyCard() { return [null, null, null, null, null, null, null, null, null]; }
-
-// Markeer vakje index met kerndoel + onderbouwing. Elk boek en elk kerndoel maar één keer.
-function markSquare(card, index, code, reason) {
-  if (index < 0 || index > 8) return { ok: false, error: "Onbekend vakje." };
-  if (card[index]) return { ok: false, error: "Dit boek is al gebruikt." };
-  if (!kd(code)) return { ok: false, error: "Kies een kerndoel." };
-  for (var i = 0; i < card.length; i++) if (card[i] && card[i].code === code) return { ok: false, error: "Kerndoel " + code + " hangt al aan een ander boek." };
-  var r = (reason || "").trim();
-  if (r.length < PREFIX.trim().length + 8 || r === PREFIX.trim()) return { ok: false, error: "Maak de zin af: wat leert een kind met dit boek?" };
-  var next = card.slice(); next[index] = { code: code, reason: r };
-  return { ok: true, card: next };
+// Plek in het rekje: rij = domein, kolom = volgorde binnen dat domein in de pool.
+function slotFor(pool, code) {
+  var k = kd(code); if (!k) return null;
+  var inDomain = pool.filter(function (c) { return kd(c).domein === k.domein; });
+  return { row: DOMEINEN.indexOf(k.domein), col: inDomain.indexOf(code) };
 }
 
-function unmarkSquare(card, index) { var next = card.slice(); next[index] = null; return next; }
-
-function findLines(card) { return LINES.filter(function (l) { return l.every(function (i) { return !!card[i]; }); }); }
-
-function isFullCard(card) { return card.every(function (c) { return !!c; }); }
-
-function domainsInLine(card, line) {
-  var set = [];
-  line.forEach(function (i) { var k = card[i] && kd(card[i].code); if (k && set.indexOf(k.domein) === -1) set.push(k.domein); });
-  return set;
+// Het rekje is 3 × 3: precies drie kerndoelen per domein.
+function poolValid(pool) {
+  return DOMEINEN.every(function (d) { return pool.filter(function (c) { var k = kd(c); return k && k.domein === d; }).length === 3; }) && pool.length === 9;
 }
 // LOGIC-END
 
 /* ---------- opslag ---------- */
-function load(key, fallback) {
-  try { var raw = localStorage.getItem(key); if (raw) { var v = JSON.parse(raw); if (v && v.v === 1) return v; } } catch (e) {}
-  return fallback();
+var KEY = "kdb-molen-v1";
+function load() {
+  try { var raw = localStorage.getItem(KEY); if (raw) { var v = JSON.parse(raw); if (v && v.v === 1 && poolValid(v.pool)) return v; } } catch (e) {}
+  return fresh(STANDAARD_POOL);
 }
-function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+function store() { try { localStorage.setItem(KEY, JSON.stringify(T)); } catch (e) {} }
+function fresh(pool) { return { v: 1, pool: pool.slice(), drawn: [], elapsed: 0, startedAt: null, running: false, winners: [], finished: false }; }
 
-/* ---------- kleine DOM-helper ---------- */
+/* ---------- helpers ---------- */
 function h(tag, attrs) {
   var el = document.createElement(tag);
   attrs = attrs || {};
@@ -255,12 +223,11 @@ function h(tag, attrs) {
   for (var i = 2; i < arguments.length; i++) {
     var c = arguments[i];
     if (c === null || c === undefined || c === false) continue;
-    if (Array.isArray(c)) c.forEach(function (x) { if (x) el.appendChild(typeof x === "string" ? document.createTextNode(x) : x); });
-    else el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    (Array.isArray(c) ? c : [c]).forEach(function (x) { if (x) el.appendChild(typeof x === "string" ? document.createTextNode(x) : x); });
   }
   return el;
 }
-function svg(path) {
+function icon(path) {
   var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "icoon"); s.setAttribute("aria-hidden", "true");
   s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "2.2");
@@ -271,168 +238,201 @@ var I = {
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2.1 1.2M17.7 15.3l2.1 1.2M4.2 16.5l2.1-1.2M17.7 8.7l2.1-1.2"/>',
-  ball: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/>',
-  copy: '<rect x="8" y="8" width="11" height="12" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h9"/>'
+  spin: '<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>'
 };
-function domLabel(d) { return h("span", { class: "dom d-" + d, text: d }); }
-function announce(msg) { var l = document.getElementById("live"); l.textContent = ""; setTimeout(function () { l.textContent = msg; }, 30); }
+function ball(code, extra) { var k = kd(code); return h("div", { class: "bal b-" + k.domein + (extra ? " " + extra : ""), "aria-hidden": "true" }, h("span", { text: code })); }
+function domTeken(d) { return h("span", { class: "dom-teken t-" + d, "aria-hidden": "true" }); }
+function announce(msg) { var l = document.getElementById("live"); l.textContent = ""; setTimeout(function () { l.textContent = msg; }, 40); }
 function reducedMotion() { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+function mmss(ms) { var s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
 
-function openDialog(labelText, buildBody, opts) {
+var T = load();
+var anim = null; // lopende trekking: { timers, animations, code }
+
+function tElapsed() { return T.elapsed + (T.running && T.startedAt ? Date.now() - T.startedAt : 0); }
+
+/* ---------- molen (SVG, decoratief; de inhoud staat in tekst ernaast) ---------- */
+var SPOTS = [[-58,78],[-18,92],[22,92],[62,76],[-84,42],[-42,56],[0,60],[42,56],[84,40]];
+function molenSVG(remaining) {
+  var balls = remaining.map(function (c, i) {
+    var p = SPOTS[i % SPOTS.length], k = kd(c);
+    var fill = k.domein === "Communicatie" ? "#92278F" : k.domein === "Taal" ? "#57257C" : "#7598C0";
+    return '<g class="mbal"><circle cx="' + (180 + p[0]) + '" cy="' + (160 + p[1]) + '" r="21" fill="' + fill + '"/>' +
+      '<circle cx="' + (180 + p[0]) + '" cy="' + (160 + p[1]) + '" r="13" fill="#fff"/>' +
+      '<text x="' + (180 + p[0]) + '" y="' + (165 + p[1]) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#1F1A24">' + c + '</text></g>';
+  }).join("");
+  var wires = "";
+  for (var a = 0; a < 180; a += 22.5) wires += '<ellipse cx="180" cy="160" rx="' + Math.abs(Math.cos(a * Math.PI / 180) * 130).toFixed(1) + '" ry="130"/>';
+  return '<svg viewBox="0 0 360 400" aria-hidden="true" focusable="false">' +
+    '<g stroke="#1F1A24" stroke-width="5" stroke-linecap="round" fill="none">' +
+      '<path d="M120 270 L70 385 M240 270 L290 385 M50 385 H310 M90 340 H270"/>' +
+    '</g>' +
+    '<path d="M282 236 Q300 300 336 330 L352 344" stroke="#1F1A24" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M296 226 Q318 296 352 318" stroke="#1F1A24" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+    '<g class="ballen">' + balls + '</g>' +
+    '<g class="kooi" stroke="#1F1A24" stroke-width="3" fill="none">' +
+      '<circle cx="180" cy="160" r="130" stroke-width="5"/>' + wires +
+      '<path d="M50 160 H310" stroke-width="2"/>' +
+    '</g>' +
+    '<circle cx="180" cy="160" r="12" fill="#1F1A24"/>' +
+    '<g class="zwengel"><path d="M180 160 H300 V200" stroke="#1F1A24" stroke-width="6" fill="none" stroke-linecap="round"/>' +
+    '<rect x="290" y="196" width="20" height="48" rx="9" fill="#C9A77A" stroke="#1F1A24" stroke-width="3"/></g>' +
+    '</svg>';
+}
+
+/* ---------- render ---------- */
+function render() {
+  var app = document.getElementById("app"); app.innerHTML = "";
+  var shown = anim ? T.drawn.slice(0, -1) : T.drawn;       // tijdens de vlucht ligt de nieuwe bal nog niet in het rekje
+  var curCode = shown.length ? shown[shown.length - 1] : null;
+  var cur = curCode ? kd(curCode) : null;
+  var remaining = T.pool.filter(function (c) { return T.drawn.indexOf(c) === -1; });
+  var done = !remaining.length;
+
+  var spinBtn = h("button", { class: "btn primair groot", type: "button", id: "trek", disabled: (done && !anim) || T.finished, onclick: onSpin },
+    icon(I.spin), anim ? "Sla over" : done ? "Molen is leeg" : "Draai aan de molen");
+
+  var molen = h("section", { class: "molen", "aria-label": "Bingomolen" });
+  var art = h("div", { id: "molen-art", style: "width:100%;display:grid;justify-items:center" });
+  art.innerHTML = molenSVG(anim ? remaining.concat([anim.code]) : remaining);
+  molen.appendChild(art);
+  molen.appendChild(spinBtn);
+  molen.appendChild(h("p", { class: "teller", text: "Bal " + T.drawn.length + " van " + T.pool.length + " · nog " + remaining.length + " in de molen" }));
+
+  var rekje = h("section", { class: "rekje", "aria-labelledby": "rek-kop" },
+    h("h2", { class: "sr", id: "rek-kop", text: "Rekje met getrokken ballen, per domein een rij, zoals de boeken op tafel" }),
+    DOMEINEN.map(function (d) {
+      var codes = T.pool.filter(function (c) { return kd(c).domein === d; });
+      return h("div", { class: "rek-rij", role: "group", "aria-label": "Rij " + d },
+        h("h3", { class: "rek-label" }, domTeken(d), d),
+        codes.map(function (c) {
+          var got = shown.indexOf(c) !== -1, k = kd(c);
+          return h("div", { class: "gat" + (got ? " vol" : ""), id: "gat-" + c },
+            got ? ball(c, c === curCode ? "nu" : "") : h("div", { class: "kuil", "aria-hidden": "true", text: c }),
+            h("p", { class: "onder" }, got ? k.titel : "", h("span", { class: "sr", text: got ? "" : c + ", nog in de molen" })));
+        }));
+    }));
+
+  var uitslag = h("section", { class: "uitslag", "aria-labelledby": "u-kop" },
+    h("h2", { class: "sr", id: "u-kop", text: "Laatst getrokken bal" }),
+    cur ? ball(cur.code) : h("div", { class: "kuil", style: "--bal:112px", "aria-hidden": "true" }),
+    cur ? h("div", { style: "display:grid;gap:6px" },
+      h("p", { class: "u-meta" }, h("span", { class: "rij", style: "gap:8px" }, domTeken(cur.domein), h("b", { text: cur.domein + " · " + cur.code }), " · Kerndoel " + cur.code.charAt(0) + ": " + cur.kerndoel)),
+      h("p", { class: "u-titel", text: cur.titel }),
+      h("p", { class: "u-zin", text: cur.doelzin }))
+      : h("p", { class: "u-leeg", text: T.finished ? "Het spel is afgelopen." : "Draai aan de molen om te beginnen." }),
+    h("div", { class: "acties" },
+      h("button", { class: "btn", type: "button", disabled: T.finished, onclick: function () { bingoCheck(3); } }, "BINGO-check"),
+      h("button", { class: "btn", type: "button", disabled: T.finished, onclick: function () { bingoCheck(9); } }, "Volle kaart"),
+      shown.length ? h("p", { class: "volgorde", text: "Volgorde: " + shown.join(" · ") }) : null
+    ));
+
+  app.appendChild(h("div", { class: "scherm" },
+    h("header", { class: "kop" },
+      h("h1", { text: "Kerndoelenbingo" }),
+      T.winners.length ? h("p", { class: "winnaars" }, "Winnaars: ", T.winners.map(function (w, i) { return h("span", null, i ? " · " : "", h("b", { text: w.team }), w.type === 9 ? " (volle kaart)" : " (bingo)"); })) : null,
+      h("div", { class: "rij" },
+        h("p", { class: "klok", id: "klok", role: "timer", "aria-label": "Speeltijd" }, mmss(tElapsed())),
+        h("button", { class: "btn stil", type: "button", disabled: !T.drawn.length || T.finished, onclick: toggleTimer }, T.running || !T.drawn.length ? "Pauzeer timer" : "Hervat timer"),
+        h("button", { class: "btn stil", type: "button", onclick: settings, "aria-label": "Instellingen" }, icon(I.gear))
+      )
+    ),
+    h("main", { class: "speelveld" }, molen, rekje),
+    uitslag
+  ));
+}
+
+/* ---------- trekken met animatie ---------- */
+function onSpin() {
+  if (anim) { land(); return; }
+  var res = drawBall(T.pool, T.drawn, Math.random);
+  if (!res) return;
+  if (!T.drawn.length) { T.running = true; T.startedAt = Date.now(); }
+  T.drawn = res.drawn; store();
+  if (reducedMotion()) { render(); afterLand(); return; }
+  anim = { code: res.ball, timers: [], animations: [] };
+  render();
+  document.getElementById("trek").focus();
+  var svgEl = document.querySelector("#molen-art svg");
+  svgEl.classList.add("draait");
+  anim.timers.push(setTimeout(fly, 900));
+}
+
+function fly() {
+  if (!anim) return;
+  // de bal verlaat de kooi
+  document.getElementById("molen-art").innerHTML = molenSVG(T.pool.filter(function (c) { return T.drawn.indexOf(c) === -1; }));
+  var svgEl = document.querySelector("#molen-art svg");
+  var r = svgEl.getBoundingClientRect(), s = r.width / 360;
+  var sx = r.left + 352 * s, sy = r.top + 344 * s;
+  var target = document.querySelector("#gat-" + anim.code + " .kuil").getBoundingClientRect();
+  var size = target.width;
+  var b = ball(anim.code, "vlieg"); b.style.width = b.style.height = size + "px";
+  document.body.appendChild(b);
+  var x0 = sx - size / 2, y0 = sy - size / 2, x1 = target.left, y1 = target.top;
+  var peak = Math.min(y0, y1) - 120;
+  var a = b.animate([
+    { transform: "translate(" + (x0 - 40 * s) + "px," + (y0 - 50 * s) + "px) scale(.45) rotate(0deg)", offset: 0 },
+    { transform: "translate(" + x0 + "px," + y0 + "px) scale(.6) rotate(120deg)", offset: .18 },
+    { transform: "translate(" + ((x0 + x1) / 2) + "px," + peak + "px) scale(.9) rotate(400deg)", offset: .6 },
+    { transform: "translate(" + x1 + "px," + (y1 - 8) + "px) scale(1.05) rotate(700deg)", offset: .9 },
+    { transform: "translate(" + x1 + "px," + y1 + "px) scale(1) rotate(720deg)", offset: 1 }
+  ], { duration: 950, easing: "cubic-bezier(.35,.1,.35,1)", fill: "forwards" });
+  anim.ball = b; anim.animations.push(a);
+  a.onfinish = land;
+}
+
+function land() {
+  if (!anim) return;
+  anim.timers.forEach(clearTimeout);
+  anim.animations.forEach(function (a) { a.onfinish = null; a.cancel(); });
+  if (anim.ball) anim.ball.remove();
+  anim = null;
+  render(); afterLand();
+}
+
+function afterLand() {
+  var k = kd(T.drawn[T.drawn.length - 1]);
+  announce("Bal " + T.drawn.length + ": " + k.code + ", " + k.domein + ". " + k.titel + ". " + k.doelzin);
+  var b = document.getElementById("trek"); if (b && !b.disabled) b.focus();
+}
+
+function toggleTimer() {
+  if (T.running) { T.elapsed = tElapsed(); T.running = false; T.startedAt = null; }
+  else { T.running = true; T.startedAt = Date.now(); }
+  store(); render();
+}
+
+/* ---------- dialogen ---------- */
+function openDialog(labelText, build, opts) {
   opts = opts || {};
   var id = "d" + Math.random().toString(36).slice(2, 8);
   var dlg = h("dialog", { "aria-labelledby": id });
   var close = function () { dlg.close(); };
   var body = h("div", { class: "dlg" },
-    h("div", { class: "dlg-kop" },
-      h("h2", { id: id, text: labelText }),
-      opts.noClose ? null : h("button", { class: "sluit", type: "button", "aria-label": "Sluiten", onclick: close }, svg(I.x))
-    )
-  );
-  buildBody(body, close, dlg);
+    h("div", { class: "dlg-kop" }, h("h2", { id: id, text: labelText }),
+      h("button", { class: "sluit", type: "button", "aria-label": "Sluiten", onclick: close }, icon(I.x))));
+  build(body, close);
   dlg.appendChild(body);
-  dlg.addEventListener("close", function () { dlg.remove(); if (opts.onClose) opts.onClose(); });
-  if (opts.noEscape) dlg.addEventListener("cancel", function (e) { e.preventDefault(); });
+  dlg.addEventListener("close", function () { dlg.remove(); });
   document.body.appendChild(dlg);
   dlg.showModal();
   return dlg;
 }
 
-function confirmInPage(title, text, yesLabel, onYes) {
+function confirmInPage(title, text, yes, onYes) {
   openDialog(title, function (b, close) {
     b.appendChild(h("p", { text: text }));
     b.appendChild(h("div", { class: "rij" },
-      h("button", { class: "btn primair", type: "button", onclick: function () { close(); onYes(); } }, yesLabel),
-      h("button", { class: "btn stil", type: "button", onclick: close }, "Annuleren")
-    ));
+      h("button", { class: "btn gevaar", type: "button", onclick: function () { close(); onYes(); } }, yes),
+      h("button", { class: "btn stil", type: "button", onclick: close }, "Annuleren")));
   });
-}
-
-/* ================= TRAINER ================= */
-var TKEY = "kdb-trainer-v1";
-function newTrainer(pool) { return { v: 1, pool: (pool || STANDAARD_POOL).slice(), drawn: [], elapsed: 0, startedAt: null, running: false, winners: [], finished: false }; }
-var T;
-var rolling = null; // lopende animatie
-
-function tElapsed() { return T.elapsed + (T.running && T.startedAt ? Date.now() - T.startedAt : 0); }
-function mmss(ms) { var s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
-function tSave() { save(TKEY, T); }
-
-function renderTrainer() {
-  var app = document.getElementById("app"); app.innerHTML = "";
-  var cur = T.drawn.length ? kd(T.drawn[T.drawn.length - 1]) : null;
-  var done = T.drawn.length >= T.pool.length;
-
-  var drawBtn = h("button", { class: "btn primair groot", type: "button", id: "trek", disabled: (done && !rolling) || T.finished, onclick: onDraw },
-    svg(I.ball), rolling ? "Stop" : (done ? "Alle ballen getrokken" : "Trek een bal"));
-
-  var bal = h("section", { class: "bal" + (cur ? "" : " leeg"), "aria-labelledby": "bal-kop" },
-    h("h2", { class: "sr", id: "bal-kop", text: "Huidige bal" }),
-    cur ? h("div", { class: "rij" }, h("div", { class: "bal-code", id: "balcode", text: cur.code }), domLabel(cur.domein)) : null,
-    h("p", { class: "bal-titel", id: "baltitel", text: cur ? cur.titel : (T.finished ? "Het spel is afgelopen." : "Nog geen bal getrokken.") }),
-    cur ? h("p", { class: "bal-zin", text: cur.doelzin }) : null,
-    cur ? h("p", { class: "bal-ouder", text: "Kerndoel " + cur.code.charAt(0) + ": " + cur.kerndoel }) : null
-  );
-
-  var timerBtn = h("button", { class: "btn stil", type: "button", disabled: !T.drawn.length || T.finished, "aria-pressed": T.drawn.length && !T.running ? "true" : "false", onclick: toggleTimer },
-    T.running || !T.drawn.length ? "Pauzeer timer" : "Hervat timer");
-
-  var main = h("div", null,
-    bal,
-    h("div", { class: "rij", style: "margin-top:16px;justify-content:space-between" },
-      h("div", { class: "rij" },
-        drawBtn,
-        h("p", { class: "teller", text: "Bal " + T.drawn.length + " van " + T.pool.length })
-      ),
-      h("div", { class: "rij" },
-        h("p", { class: "klok", id: "klok", role: "timer", "aria-label": "Speeltijd" }, mmss(tElapsed())),
-        timerBtn
-      )
-    ),
-    h("div", { class: "rij", style: "margin-top:16px" },
-      h("button", { class: "btn", type: "button", disabled: T.finished, onclick: function () { bingoCheck(3); } }, "BINGO-check"),
-      h("button", { class: "btn", type: "button", disabled: T.finished, onclick: function () { bingoCheck(9); } }, "Volle kaart")
-    )
-  );
-
-  // samenhangbord: per domein de ballen in de pool
-  var cols = DOMEINEN.map(function (d) {
-    var codes = T.pool.filter(function (c) { return kd(c).domein === d; });
-    return h("div", null,
-      h("h3", { class: "d-" + d, text: d + " (" + codes.length + ")" }),
-      codes.map(function (c) {
-        var k = kd(c), got = T.drawn.indexOf(c) !== -1, now = cur && cur.code === c;
-        return h("div", { class: "slot d-" + d + (got ? " getrokken" : "") + (now ? " nu" : "") },
-          h("b", { text: c }), h("span", { text: k.titel }),
-          h("span", { class: "sr", text: got ? " — getrokken" : " — nog niet getrokken" }));
-      }));
-  });
-
-  var aside = h("aside", { "aria-label": "Overzicht" },
-    h("section", { class: "paneel", "aria-labelledby": "sh-kop" },
-      h("h2", { id: "sh-kop", text: "Samenhang: drie domeinen van Nederlands" }),
-      h("div", { class: "samenhang" }, cols)
-    ),
-    h("section", { class: "paneel", "aria-labelledby": "gt-kop" },
-      h("h2", { id: "gt-kop", text: "Getrokken ballen" }),
-      T.drawn.length
-        ? h("ol", { class: "lijst" }, T.drawn.map(function (c, i) { return h("li", null, h("span", { class: "nr", "aria-hidden": "true", text: String(i + 1) }), h("b", { text: c }), h("span", { text: kd(c).titel })); }))
-        : h("p", { class: "leeg-tekst", text: "Nog niets getrokken." })
-    ),
-    h("section", { class: "paneel", "aria-labelledby": "wn-kop" },
-      h("h2", { id: "wn-kop", text: "Winnaars" }),
-      T.winners.length
-        ? h("ul", { class: "lijst" }, T.winners.map(function (w) { return h("li", null, h("b", { text: w.team }), h("span", { text: w.type === 9 ? "volle kaart" : "bingo" })); }))
-        : h("p", { class: "leeg-tekst", text: "Nog geen winnaars." })
-    )
-  );
-
-  app.appendChild(h("div", { class: "wrap" },
-    h("header", { class: "kop" },
-      h("h1", { text: "Kerndoelenbingo · trainer" }),
-      h("div", { class: "rij" },
-        h("a", { class: "btn stil", href: "#team" }, "Teamscherm"),
-        h("button", { class: "btn stil", type: "button", onclick: settings }, svg(I.gear), "Instellingen")
-      )
-    ),
-    h("main", { id: "inhoud", class: "tr-grid", tabindex: "-1" }, main, aside)
-  ));
-}
-
-function onDraw() {
-  if (rolling) { finishRoll(); return; }
-  var res = drawBall(T.pool, T.drawn, Math.random);
-  if (!res) return;
-  if (!T.drawn.length) { T.running = true; T.startedAt = Date.now(); }
-  T.drawn = res.drawn; tSave();
-  if (reducedMotion()) { renderTrainer(); afterDraw(); return; }
-  rolling = { t: null, end: Date.now() + 600 };
-  renderTrainer();
-  var codeEl = document.getElementById("balcode");
-  if (codeEl) codeEl.classList.add("rolt");
-  rolling.t = setInterval(function () {
-    if (Date.now() >= rolling.end) { finishRoll(); return; }
-    var el = document.getElementById("balcode");
-    if (el) el.textContent = T.pool[Math.floor(Math.random() * T.pool.length)];
-  }, 60);
-  document.getElementById("trek").focus();
-}
-function finishRoll() { if (!rolling) return; clearInterval(rolling.t); rolling = null; renderTrainer(); afterDraw(); }
-function afterDraw() {
-  var k = kd(T.drawn[T.drawn.length - 1]);
-  announce("Bal " + T.drawn.length + ": " + k.code + ", " + k.titel + ". " + k.doelzin);
-  var b = document.getElementById("trek"); if (b && !b.disabled) b.focus();
-}
-function toggleTimer() {
-  if (T.running) { T.elapsed = tElapsed(); T.running = false; T.startedAt = null; }
-  else { T.running = true; T.startedAt = Date.now(); }
-  tSave(); renderTrainer();
 }
 
 function bingoCheck(n) {
   var verdict = new Array(n).fill(null);
   openDialog(n === 9 ? "Volle kaart controleren" : "BINGO controleren", function (b, close) {
-    b.appendChild(h("p", { class: "hulp", text: "Per boek 20 seconden. De zaal mag één vakje afkeuren; dan speelt het team door." }));
+    b.appendChild(h("p", { class: "hulp", text: "Per boek 20 seconden: welke kennis of vaardigheid bouwt een kind met dit boek op? De zaal mag één vakje afkeuren; dan speelt het team door." }));
     var rows = h("div");
     var status = h("p", { class: "status", role: "status" });
     var team = h("input", { class: "veld", id: "wteam", autocomplete: "off" });
@@ -444,20 +444,21 @@ function bingoCheck(n) {
       ok.disabled = !(all && team.value.trim());
     }
     for (var i = 0; i < n; i++) (function (i) {
-      var ja = h("button", { class: "btn ja", type: "button", "aria-pressed": "false" }, svg(I.check), "Goedgekeurd");
-      var nee = h("button", { class: "btn nee", type: "button", "aria-pressed": "false" }, svg(I.x), "Afgekeurd");
+      var lbl = n === 9 ? DOMEINEN[Math.floor(i / 3)] + ", boek " + (i % 3 + 1) : "Boek " + (i + 1);
+      var ja = h("button", { class: "btn ja", type: "button", "aria-pressed": "false" }, icon(I.check), "Goedgekeurd");
+      var nee = h("button", { class: "btn nee", type: "button", "aria-pressed": "false" }, icon(I.x), "Afgekeurd");
       function set(v) { verdict[i] = v; ja.setAttribute("aria-pressed", String(v === "ja")); nee.setAttribute("aria-pressed", String(v === "nee")); update(); }
       ja.addEventListener("click", function () { set("ja"); });
       nee.addEventListener("click", function () { set("nee"); });
-      rows.appendChild(h("div", { class: "check-rij", role: "group", "aria-label": "Boek " + (i + 1) }, h("span", { text: "Boek " + (i + 1) }), ja, nee));
+      rows.appendChild(h("div", { class: "check-rij", role: "group", "aria-label": lbl }, h("span", { text: lbl }), ja, nee));
     })(i);
     team.addEventListener("input", update);
     ok.addEventListener("click", function () {
       var name = team.value.trim();
       T.winners.push({ team: name, type: n, at: Date.now() });
       if (n === 9) { T.finished = true; T.elapsed = tElapsed(); T.running = false; T.startedAt = null; }
-      tSave(); close(); renderTrainer();
-      announce((n === 9 ? "Volle kaart voor " : "Bingo voor ") + name);
+      store(); close(); render();
+      announce((n === 9 ? "Volle kaart voor " : "Bingo voor ") + name + ".");
       if (n === 9) winnerScreen(name);
     });
     b.appendChild(rows); b.appendChild(status);
@@ -473,8 +474,7 @@ function winnerScreen(name) {
       h("p", { class: "groot-woord", text: "VOLLE KAART" }),
       h("p", { class: "naam", text: name }),
       h("p", { text: "Het spel is afgelopen." }),
-      h("div", null, h("button", { class: "btn primair", type: "button", onclick: close }, "Sluiten"))
-    ));
+      h("div", null, h("button", { class: "btn primair", type: "button", onclick: close }, "Sluiten"))));
   });
   d.style.width = "min(1100px, calc(100vw - 24px))";
 }
@@ -484,315 +484,46 @@ function settings() {
     var locked = T.drawn.length > 0;
     var sel = T.pool.slice();
     var counts = {};
-    if (locked) b.appendChild(h("p", { class: "fout-tekst", text: "Het spel loopt. Start een nieuw spel om de pool te wijzigen." }));
-    b.appendChild(h("p", { class: "hulp", text: "Kies per domein drie kerndoelen: dan kan elke rij op de kaart de samenhang tussen communicatie, taal en literatuur laten zien." }));
-    var box = h("div", { style: "display:grid;gap:12px" });
-    var total = h("p", { class: "status", role: "status" });
+    if (locked) b.appendChild(h("p", { class: "status fout", text: "Het spel loopt. Start een nieuw spel om de ballen te wijzigen." }));
+    b.appendChild(h("p", { class: "hulp", text: "Kies per domein precies drie kerndoelen. Elke rij in het rekje is een domein, net als de rijen boeken op tafel." }));
+    var saveBtn = h("button", { class: "btn primair", type: "button", onclick: function () {
+      T.pool = KERNDOELEN.map(function (k) { return k.code; }).filter(function (c) { return sel.indexOf(c) !== -1; });
+      store(); close(); render(); announce("Ballen opgeslagen.");
+    } }, "Ballen opslaan");
     function upd() {
       DOMEINEN.forEach(function (d) {
         var n = sel.filter(function (c) { return kd(c).domein === d; }).length;
-        counts[d].textContent = n + " gekozen" + (n === 3 ? "" : " · advies: 3");
+        counts[d].textContent = n + " van 3";
+        counts[d].className = "status" + (n === 3 ? " goed" : " fout");
       });
-      total.textContent = "Pool: " + sel.length + " ballen.";
-      saveBtn.disabled = locked || sel.length < 1;
+      saveBtn.disabled = locked || !poolValid(sel);
     }
+    var box = h("div", { style: "display:grid;gap:10px" });
     DOMEINEN.forEach(function (d) {
-      counts[d] = h("span", { class: "hulp" });
-      var fs = h("fieldset", { disabled: locked }, h("legend", null, domLabel(d), " ", counts[d]));
+      counts[d] = h("span");
+      var fs = h("fieldset", { disabled: locked }, h("legend", null, domTeken(d), d, " · ", counts[d]));
       KERNDOELEN.filter(function (k) { return k.domein === d; }).forEach(function (k) {
         var cb = h("input", { type: "checkbox", checked: sel.indexOf(k.code) !== -1 });
-        cb.addEventListener("change", function () {
-          if (cb.checked) sel.push(k.code); else sel = sel.filter(function (c) { return c !== k.code; });
-          upd();
-        });
+        cb.addEventListener("change", function () { if (cb.checked) sel.push(k.code); else sel = sel.filter(function (c) { return c !== k.code; }); upd(); });
         fs.appendChild(h("label", { class: "optie" }, cb, h("span", null, h("b", { text: k.code + " " }), k.titel)));
       });
       box.appendChild(fs);
     });
-    var saveBtn = h("button", { class: "btn primair", type: "button", onclick: function () {
-      T.pool = KERNDOELEN.map(function (k) { return k.code; }).filter(function (c) { return sel.indexOf(c) !== -1; });
-      tSave(); close(); renderTrainer(); announce("Pool opgeslagen: " + T.pool.length + " ballen.");
-    } }, "Pool opslaan");
-    b.appendChild(box); b.appendChild(total);
-    b.appendChild(h("div", { class: "rij" },
-      saveBtn,
-      h("button", { class: "btn primair", type: "button", style: "background:var(--fout);border-color:var(--fout)", onclick: function () {
+    b.appendChild(box);
+    b.appendChild(h("div", { class: "rij" }, saveBtn,
+      h("button", { class: "btn gevaar", type: "button", onclick: function () {
         close();
-        confirmInPage("Nieuw spel?", "Alle getrokken ballen, de timer en de winnaars worden gewist.", "Ja, nieuw spel", function () {
-          T = newTrainer(T.pool); tSave(); renderTrainer(); announce("Nieuw spel gestart.");
+        confirmInPage("Nieuw spel?", "Alle ballen gaan terug in de molen. Timer en winnaars worden gewist.", "Ja, nieuw spel", function () {
+          if (anim) land();
+          T = fresh(T.pool); store(); render(); announce("Nieuw spel. Alle ballen zitten in de molen.");
         });
-      } }, "Nieuw spel")
-    ));
+      } }, "Nieuw spel")));
     upd();
   });
 }
 
-/* ================= TEAM ================= */
-var KKEY = "kdb-team-v1";
-function newTeam() { return { v: 1, step: 1, team: "", bouw: "", books: ["", "", "", "", "", "", "", "", ""], card: emptyCard(), seenLines: [], fullShown: false }; }
-var S;
-function sSave() { save(KKEY, S); }
-function lineKey(l) { return l.join(""); }
-
-function renderTeam() {
-  var app = document.getElementById("app"); app.innerHTML = "";
-  var wrap = h("main", { class: "team", id: "inhoud", tabindex: "-1" });
-  app.appendChild(wrap);
-  if (S.step === 1) teamStep1(wrap);
-  else if (S.step === 2) teamStep2(wrap);
-  else teamStep3(wrap);
-}
-
-function teamStep1(w) {
-  var err = h("p", { class: "fout-tekst", id: "s1err", role: "alert" });
-  var name = h("input", { class: "veld", id: "tnaam", value: S.team, autocomplete: "off", "aria-describedby": "s1err", required: true });
-  var bouwOpts = [["ob", "Onderbouw"], ["bb", "Bovenbouw"]].map(function (o) {
-    return h("label", { class: "optie" }, h("input", { type: "radio", name: "bouw", value: o[0], checked: S.bouw === o[0] }), o[1]);
-  });
-  var form = h("form", { class: "formulier", novalidate: true },
-    h("div", null, h("label", { for: "tnaam", text: "Teamnaam" }), name),
-    h("fieldset", null, h("legend", { text: "Bouw" }), bouwOpts),
-    err,
-    h("button", { class: "btn primair", type: "submit" }, "Verder naar de boeken")
-  );
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    var b = form.querySelector("input[name=bouw]:checked");
-    if (!name.value.trim()) { err.textContent = "Vul een teamnaam in."; name.focus(); return; }
-    if (!b) { err.textContent = "Kies onderbouw of bovenbouw."; form.querySelector("input[name=bouw]").focus(); return; }
-    S.team = name.value.trim(); S.bouw = b.value; S.step = 2; sSave(); renderTeam(); focusMain();
-  });
-  w.appendChild(h("p", { class: "stap", text: "Stap 1 van 3" }));
-  w.appendChild(h("h1", { text: "Wie zijn jullie?" }));
-  w.appendChild(form);
-}
-
-function teamStep2(w) {
-  var left = h("p", { class: "hulp", role: "status" });
-  var start = h("button", { class: "btn primair", type: "submit" }, "Start het spel");
-  var inputs = [];
-  var grid = h("div", { class: "boeken-invoer" });
-  S.books.forEach(function (t, i) {
-    var id = "boek" + i, r = Math.floor(i / 3) + 1, k = (i % 3) + 1;
-    var inp = h("input", { class: "veld", id: id, value: t, autocomplete: "off" });
-    inp.addEventListener("input", function () { S.books[i] = inp.value; sSave(); upd(); });
-    inputs.push(inp);
-    grid.appendChild(h("div", null, h("label", { for: id }, h("span", { "aria-hidden": "true", text: "Boek " + (i + 1) }), h("span", { class: "sr", text: "Boek " + (i + 1) + ", rij " + r + ", kolom " + k })), inp));
-  });
-  function missing() { return S.books.filter(function (b) { return !b.trim(); }).length; }
-  function upd() { var m = missing(); left.textContent = m ? "Nog " + m + " titel" + (m === 1 ? "" : "s") + " te gaan." : "Alle negen titels staan erin."; start.disabled = m > 0; }
-  var form = h("form", { class: "formulier", novalidate: true },
-    h("p", { text: "Typ de titels in dezelfde 3 × 3-opstelling als de boeken op tafel." }),
-    grid, left,
-    h("div", { class: "rij" }, start, h("button", { class: "btn stil", type: "button", onclick: function () { S.step = 1; sSave(); renderTeam(); focusMain(); } }, "Terug"))
-  );
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    if (missing()) { var first = inputs.filter(function (x) { return !x.value.trim(); })[0]; if (first) first.focus(); return; }
-    S.books = S.books.map(function (b) { return b.trim(); }); S.step = 3; sSave(); renderTeam(); focusMain();
-  });
-  w.appendChild(h("p", { class: "stap", text: "Stap 2 van 3 · " + S.team }));
-  w.appendChild(h("h1", { text: "Jullie negen boeken" }));
-  w.appendChild(form);
-  upd();
-}
-
-function teamStep3(w) {
-  var n = S.card.filter(Boolean).length;
-  w.appendChild(h("p", { class: "stap", text: S.team + " · " + (S.bouw === "ob" ? "onderbouw" : "bovenbouw") }));
-  w.appendChild(h("h1", { text: "Onze kaart" }));
-  w.appendChild(h("p", { role: "status", text: n + " van 9 boeken gemarkeerd." }));
-  var grid = h("div", { class: "kaart", role: "group", "aria-label": "Bingokaart, 3 bij 3" });
-  S.books.forEach(function (t, i) {
-    var m = S.card[i], k = m && kd(m.code), r = Math.floor(i / 3) + 1, c = (i % 3) + 1;
-    var label = t + ", rij " + r + " kolom " + c + (m ? ", gemarkeerd met " + m.code + " " + k.titel : ", nog niet gemarkeerd");
-    grid.appendChild(h("button", { class: "vak" + (m ? " gemarkeerd" : ""), type: "button", id: "vak" + i, "aria-label": label, onclick: function () { m ? showMarked(i) : markDialog(i); } },
-      h("span", { class: "titel", text: t }),
-      m ? h("span", null, h("span", { class: "code" }, svg(I.check), m.code), h("span", { class: "dnaam", text: k.domein })) : h("span", { class: "open", text: "Tik om te koppelen" })
-    ));
-  });
-  w.appendChild(grid);
-  w.appendChild(h("div", { class: "rij" },
-    h("button", { class: "btn primair", type: "button", onclick: harvest }, "Onze oogst"),
-    h("button", { class: "btn stil", type: "button", onclick: function () {
-      confirmInPage("Nieuw spel?", "De teamnaam, boektitels en alle markeringen worden gewist.", "Ja, wis alles", function () { S = newTeam(); sSave(); renderTeam(); focusMain(); announce("Nieuw spel."); });
-    } }, "Nieuw spel")
-  ));
-}
-
-function markDialog(i) {
-  var used = {};
-  S.card.forEach(function (m, j) { if (m) used[m.code] = S.books[j]; });
-  openDialog("Welk kerndoel past bij “" + S.books[i] + "”?", function (b, close) {
-    var chosen = null;
-    var err = h("p", { class: "fout-tekst", role: "alert" });
-    var search = h("input", { class: "veld", id: "zoek", type: "search", autocomplete: "off", "aria-describedby": "zoekhulp" });
-    var list = h("div", { class: "kd-lijst", role: "radiogroup", "aria-label": "Kerndoelen" });
-    var options = [];
-    function optionFor(k) {
-      var taken = used[k.code];
-      var r = h("input", { type: "radio", name: "kd", value: k.code, disabled: !!taken });
-      r.addEventListener("change", function () { chosen = k.code; err.textContent = ""; });
-      var lab = h("label", { class: "optie" + (taken ? " uit" : "") }, r,
-        h("span", null, h("b", { text: k.code + " · " + k.titel }), h("br"), h("span", { class: "hulp", text: taken ? "Al gebruikt bij “" + taken + "”" : k.doelzin })));
-      options.push({ el: lab, k: k });
-      return lab;
-    }
-    function group(codes, into) {
-      DOMEINEN.forEach(function (d) {
-        var ks = codes.map(kd).filter(function (k) { return k.domein === d; });
-        if (!ks.length) return;
-        var g = h("div", { class: "groep" }, h("h3", { class: "d-" + d, text: d }));
-        ks.forEach(function (k) { g.appendChild(optionFor(k)); });
-        into.appendChild(g);
-      });
-    }
-    group(STANDAARD_POOL, list);
-    var others = KERNDOELEN.map(function (k) { return k.code; }).filter(function (c) { return STANDAARD_POOL.indexOf(c) === -1; });
-    var det = h("details", null, h("summary", { text: "Overige kerndoelen Nederlands (als de trainer die gebruikt)" }));
-    group(others, det);
-    list.appendChild(det);
-    search.addEventListener("input", function () {
-      var q = search.value.trim().toLowerCase();
-      options.forEach(function (o) {
-        var hay = (o.k.code + " " + o.k.titel + " " + o.k.doelzin + " " + o.k.domein).toLowerCase();
-        o.el.hidden = q && hay.indexOf(q) === -1;
-      });
-      list.querySelectorAll(".groep").forEach(function (g) { g.hidden = !g.querySelector(".optie:not([hidden])"); });
-      if (q) det.open = true;
-    });
-    var why = h("textarea", { class: "veld", id: "waarom", "aria-describedby": "waaromhulp" });
-    why.value = PREFIX;
-    var ok = h("button", { class: "btn primair", type: "button" }, svg(I.check), "Bevestig");
-    ok.addEventListener("click", function () {
-      var res = markSquare(S.card, i, chosen, why.value);
-      if (!res.ok) { err.textContent = res.error; (chosen ? why : search).focus(); return; }
-      S.card = res.card; sSave(); close(); renderTeam();
-      announce(S.books[i] + " gemarkeerd met " + chosen + ".");
-      checkBingo(i);
-    });
-    b.appendChild(h("div", null, h("label", { for: "zoek", text: "Zoek op code of woord" }), h("p", { class: "hulp", id: "zoekhulp", text: "Kies het kerndoel dat de trainer heeft getrokken." }), search));
-    b.appendChild(list);
-    b.appendChild(h("div", null, h("label", { for: "waarom", text: "Onderbouwing in één zin" }), h("p", { class: "hulp", id: "waaromhulp", text: "Welke kennis of vaardigheid bouwt een kind met dit boek op?" }), why));
-    b.appendChild(err);
-    b.appendChild(h("div", { class: "rij" }, ok, h("button", { class: "btn stil", type: "button", onclick: close }, "Annuleren")));
-  }, { onClose: function () { var v = document.getElementById("vak" + i); if (v) v.focus(); } });
-}
-
-function showMarked(i) {
-  var m = S.card[i], k = kd(m.code);
-  openDialog(S.books[i], function (b, close) {
-    b.appendChild(h("div", { class: "rij" }, h("b", { text: k.code + " · " + k.titel }), domLabel(k.domein)));
-    b.appendChild(h("p", { class: "hulp", text: k.doelzin }));
-    b.appendChild(h("p", { text: m.reason }));
-    b.appendChild(h("div", { class: "rij" },
-      h("button", { class: "btn", type: "button", onclick: function () {
-        S.card = unmarkSquare(S.card, i);
-        var now = findLines(S.card).map(lineKey);
-        S.seenLines = S.seenLines.filter(function (x) { return now.indexOf(x) !== -1; });
-        S.fullShown = false; sSave(); close(); renderTeam(); announce("Markering bij " + S.books[i] + " teruggedraaid.");
-      } }, "Terugdraaien"),
-      h("button", { class: "btn stil", type: "button", onclick: close }, "Sluiten")
-    ));
-  }, { onClose: function () { var v = document.getElementById("vak" + i); if (v) v.focus(); } });
-}
-
-function checkBingo(lastIndex) {
-  var lines = findLines(S.card);
-  if (isFullCard(S.card) && !S.fullShown) {
-    S.fullShown = true; S.seenLines = lines.map(lineKey); sSave();
-    resultScreen("VOLLE KAART", [0, 1, 2, 3, 4, 5, 6, 7, 8], lastIndex);
-    return;
-  }
-  var fresh = lines.filter(function (l) { return S.seenLines.indexOf(lineKey(l)) === -1; });
-  if (!fresh.length) return;
-  S.seenLines = lines.map(lineKey); sSave();
-  resultScreen("BINGO!", fresh[0], lastIndex);
-}
-
-function resultScreen(word, idx, lastIndex) {
-  var doms = domainsInLine(S.card, idx);
-  announce(word + " Lees jullie boeken voor.");
-  var d = openDialog(word === "BINGO!" ? "Bingo! Roep het hardop" : "Volle kaart! Roep het hardop", function (b, close) {
-    b.appendChild(h("p", { class: "bingo-kop", "aria-hidden": "true", text: word }));
-    if (idx.length === 3) b.appendChild(h("p", { class: "status" + (doms.length === 3 ? " goed" : ""), text: doms.length === 3 ? "Samenhang: deze rij raakt alle drie de domeinen." : "Deze rij raakt " + doms.length + " van de 3 domeinen: " + doms.join(", ") + "." }));
-    var ol = h("ol", { style: "display:grid;gap:10px;padding:0;margin:0;list-style:none" });
-    idx.forEach(function (i) {
-      var m = S.card[i], k = kd(m.code);
-      ol.appendChild(h("li", { class: "bingo-boek" },
-        h("span", { class: "bt", text: S.books[i] }),
-        h("span", { class: "rij" }, h("b", { text: k.code + " · " + k.titel }), domLabel(k.domein)),
-        h("span", { text: m.reason })));
-    });
-    b.appendChild(ol);
-    b.appendChild(h("div", { class: "rij" }, h("button", { class: "btn primair", type: "button", onclick: close }, "Terug naar de kaart")));
-  }, { onClose: function () { var v = document.getElementById("vak" + lastIndex); if (v) v.focus(); } });
-  d.style.width = "min(900px, calc(100vw - 16px))";
-}
-
-function harvestText() {
-  var lines = ["Kerndoelenbingo — " + S.team + " (" + (S.bouw === "ob" ? "onderbouw" : "bovenbouw") + ")", ""];
-  DOMEINEN.forEach(function (d) {
-    var items = [];
-    S.card.forEach(function (m, i) { if (m && kd(m.code).domein === d) items.push("- " + S.books[i] + " → " + m.code + " " + kd(m.code).titel + ": " + m.reason); });
-    lines.push(d + " (" + items.length + ")");
-    lines = lines.concat(items.length ? items : ["- (nog niets)"]);
-    lines.push("");
-  });
-  return lines.join("\n").trim();
-}
-
-function harvest() {
-  openDialog("Onze oogst", function (b) {
-    var ta = h("textarea", { class: "veld", id: "oogst", readonly: true, rows: "12", style: "min-height:260px" });
-    ta.value = harvestText();
-    var st = h("p", { class: "status", role: "status" });
-    b.appendChild(h("p", { class: "hulp", text: "Per domein: welke boeken en wat een kind ervan leert. Materiaal voor de nabespreking." }));
-    b.appendChild(h("div", null, h("label", { for: "oogst", text: "Oogst als tekst" }), ta));
-    b.appendChild(h("div", { class: "rij" }, h("button", { class: "btn primair", type: "button", onclick: function () {
-      var fallback = function () {
-        ta.focus(); ta.select();
-        var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
-        st.className = "status" + (ok ? " goed" : "");
-        st.textContent = ok ? "Gekopieerd." : "Tekst is geselecteerd: kopieer met Ctrl+C of lang indrukken.";
-      };
-      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(ta.value).then(function () { st.className = "status goed"; st.textContent = "Gekopieerd."; }, fallback);
-      else fallback();
-    } }, svg(I.copy), "Kopieer")), st);
-  });
-}
-
-/* ================= KEUZE + ROUTER ================= */
-function renderChoice() {
-  var app = document.getElementById("app"); app.innerHTML = "";
-  app.appendChild(h("main", { class: "keuze", id: "inhoud", tabindex: "-1" },
-    h("h1", { text: "Kerndoelenbingo" }),
-    h("p", { text: "Kerndoelen Nederlands, primair onderwijs. Drie domeinen, negen ballen." }),
-    h("div", { class: "rij" },
-      h("a", { class: "btn primair groot", href: "#trainer" }, "Trainer (beamer)"),
-      h("a", { class: "btn groot", href: "#team" }, "Team (telefoon)")
-    )
-  ));
-}
-function focusMain() { var m = document.getElementById("inhoud"); if (m) m.focus({ preventScroll: false }); }
-var tick = null;
-function route() {
-  if (rolling) { clearInterval(rolling.t); rolling = null; }
-  clearInterval(tick);
-  var r = location.hash.replace("#", "");
-  if (r === "trainer") {
-    document.title = "Trainer · Kerndoelenbingo";
-    T = load(TKEY, newTrainer);
-    renderTrainer();
-    tick = setInterval(function () { var k = document.getElementById("klok"); if (k) k.textContent = mmss(tElapsed()); }, 500);
-  } else if (r === "team") {
-    document.title = "Team · Kerndoelenbingo";
-    S = load(KKEY, newTeam);
-    renderTeam();
-  } else { document.title = "Kerndoelenbingo"; renderChoice(); }
-}
-window.addEventListener("hashchange", function () { route(); focusMain(); });
-route();
+render();
+setInterval(function () { var k = document.getElementById("klok"); if (k) k.textContent = mmss(tElapsed()); }, 500);
 </script>
 </body>
 </html>

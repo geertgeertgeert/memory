@@ -1,12 +1,12 @@
 # Kerndoelenbingo
 
-1. **Trainerscherm:** open `index.html` in Chrome of Edge (dubbelklik) en kies *Trainer*, of voeg `#trainer` toe aan het adres. Zet het scherm op de beamer.
-2. **Teamlink:** zet `index.html` online, bijvoorbeeld via GitHub Pages of Netlify Drop, en deel het adres met `#team` erachter als QR-code. Teams kunnen het bestand ook via AirDrop of mail op hun telefoon openen.
-3. **Offline:** na één keer laden werkt alles zonder wifi. Alleen het lettertype valt dan terug op het systeemfont.
-4. **Pool:** standaard 9 ballen, drie kerndoelen per domein (Communicatie 2A 2B 3B, Taal 6A 7A 7B, Literatuur 8B 9A 9B). Wijzigen via *Instellingen*, alleen vóór de eerste trekking.
-5. **Bron:** SLO, *Kerndoelen primair onderwijs* (juli 2026), leergebied Nederlands, letterlijk overgenomen. Kerndoel 1 (Overkoepelend) is een opdracht aan de school en zit er daarom niet in.
-6. **Reset trainer:** *Instellingen → Nieuw spel*, en bevestig.
-7. **Reset team:** knop *Nieuw spel* onder de kaart, en bevestig.
-8. **Ververs je per ongeluk?** De stand staat in `localStorage` en blijft bewaard.
-9. **Tests:** `node test.js` (uitvoer staat in `test-uitvoer.txt`).
-10. **Toegankelijkheid:** volledig met het toetsenbord te bedienen, schermlezer-meldingen bij elke bal en bij bingo, contrast AA, `prefers-reduced-motion`, aanraakvlakken ≥ 48 px.
+1. **Starten:** open `index.html` in Chrome of Edge op de laptop aan het digibord. Er is geen server, account of teamscherm nodig.
+2. **Spel:** een bingomolen met kerndoelen in plaats van nummers. *Draai aan de molen*: een bal rolt eruit en landt in het rekje.
+3. **Kaart = tafel:** elk team legt negen boeken in drie rijen: Communicatie, Literatuur, Taal. Het rekje op het bord heeft dezelfde rijen.
+4. **Ballen:** drie per domein (Communicatie 2A 2B 3B, Literatuur 8B 9A 9B, Taal 6A 7A 7B). Wijzigen via het tandwiel, alleen vóór de eerste trekking.
+5. **Bingo:** rij, kolom of diagonaal vol op tafel → *BINGO-check*. Per boek 20 seconden, de zaal mag één vakje afkeuren. Een kolom is één boek per domein: dat is de samenhang.
+6. **Volle kaart:** negen goedgekeurde boeken → winnaar van de middag, het spel stopt.
+7. **Reset:** tandwiel → *Nieuw spel*, en bevestig. Ververs je per ongeluk? De stand blijft bewaard.
+8. **Offline:** na één keer laden werkt alles zonder wifi. Het lettertype valt dan terug op het systeemfont.
+9. **Bron:** SLO, *Kerndoelen primair onderwijs* (juli 2026), Nederlands, letterlijk overgenomen. Kerndoel 1 (opdracht aan de school) zit er niet in.
+10. **Toegankelijk:** volledig met het toetsenbord te bedienen, schermlezer-melding per bal, domeinen herkenbaar aan kleur, vorm én tekst, animatie uit bij *minder beweging*. Tests: `node test.js`.
