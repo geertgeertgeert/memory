@@ -1,0 +1,14 @@
+ok  rij: vakjes 3,4,5 geven één lijn
+ok  kolom: vakjes 1,4,7
+ok  diagonaal: 0,4,8 en 2,4,6
+ok  geen lijn bij twee op een rij of een L-vorm
+ok  kerndoel kan niet aan twee boeken hangen
+ok  boek kan niet twee kerndoelen krijgen
+ok  terugdraaien maakt boek en kerndoel weer vrij
+ok  markSquare muteert de invoer niet
+ok  volle kaart: 9 vakjes, 8 lijnen
+ok  drawBall trekt nooit dubbel en stopt bij lege pool
+ok  buildPool: juiste grootte, ~helft Nederlands, alleen gekozen domeinen
+ok  buildPool: te weinig kerndoelen geeft kleinere pool, geen fout
+
+12 tests geslaagd
