@@ -21,7 +21,7 @@
   --fout: #A3231F;
   --focus: #1D4ED8;
   --r: 10px;
-  --bal: 84px;
+  --bal: 76px;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -79,9 +79,9 @@ button, input { font: inherit; color: inherit; }
 }
 
 /* rekje: rijen = domeinen, zoals de boeken op tafel */
-.rekje { background: var(--vlak); border: 2px solid var(--lijn); border-radius: 18px; padding: 16px 20px; display: grid; gap: 10px; }
+.rekje { background: var(--vlak); border: 2px solid var(--lijn); border-radius: 18px; padding: 12px 20px; display: grid; gap: 8px; }
 .rek-rij { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 12px; align-items: center; }
-.rek-rij + .rek-rij { border-top: 1px solid var(--lijn); padding-top: 10px; }
+.rek-rij + .rek-rij { border-top: 1px solid var(--lijn); padding-top: 8px; }
 .rek-label { font-weight: 700; font-size: 20px; display: flex; align-items: center; gap: 8px; }
 .gat { display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
 .kuil { width: var(--bal); height: var(--bal); border-radius: 50%; border: 3px dashed #B8B0C0; display: grid; place-items: center; color: var(--grijs); font-weight: 700; font-size: 18px; background: var(--wit); }
@@ -104,16 +104,24 @@ button, input { font: inherit; color: inherit; }
 .t-Communicatie { background: var(--paars); border-radius: 3px; }
 .t-Literatuur { background: var(--blauw); transform: rotate(45deg) scale(.85); }
 .t-Taal { background: var(--donker); border-radius: 50%; }
+.b-Overkoepelend { background: var(--grijs); }
+.t-Overkoepelend { background: var(--grijs); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.rek-tel { display: block; font-size: 15px; font-weight: 400; color: var(--grijs); }
+.rek-rij.extra { border-top: 2px dashed var(--lijn); }
+.rek-rij.extra .rek-label { font-size: 17px; }
+.gat.klein { --bal: 56px; }
+.gat.klein .onder { min-height: 0; font-size: 14px; }
+.gesprek { font-size: 20px; font-weight: 700; color: var(--donker); }
 
 /* huidige bal */
 .uitslag { border-top: 2px solid var(--lijn); padding-top: 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; align-items: center; }
-.uitslag .bal { --bal: 112px; }
+.uitslag .bal { --bal: 100px; }
 .u-titel { font-size: clamp(32px, 3.8vw, 54px); font-weight: 700; line-height: 1.08; }
 .u-zin { font-size: clamp(20px, 1.9vw, 28px); }
 .u-meta { font-size: 18px; color: var(--grijs); }
 .u-leeg { font-size: 32px; color: var(--grijs); }
 .acties { display: grid; gap: 8px; justify-items: stretch; }
-.volgorde { font-size: 16px; color: var(--grijs); max-width: 280px; }
+.volgorde { font-size: 15px; color: var(--grijs); max-width: 220px; line-height: 1.3; }
 @media (max-width: 860px) { .uitslag { grid-template-columns: minmax(0, 1fr); } }
 
 /* dialogen */
@@ -150,9 +158,12 @@ legend { font-weight: 700; padding: 0 6px; display: flex; align-items: center; g
 <script>
 // LOGIC-START
 /* Bron: SLO, Kerndoelen primair onderwijs (juli 2026), leergebied Nederlands.
-   Teksten letterlijk overgenomen. Kerndoel 1 (Overkoepelend) is een opdracht
-   aan de school, niet aan de leerling, en zit daarom niet in de molen. */
+   Teksten letterlijk overgenomen. Alle 19 doelen zitten in de molen.
+   Kerndoel 1 (Overkoepelend) is een opdracht aan de school: die ballen zijn
+   gespreksballen, zonder boek en zonder plek in het rekje. */
 var KERNDOELEN = [
+  { code: "1A", domein: "Overkoepelend", kerndoel: "De school stimuleert de taalcompetentie van leerlingen.", titel: "Taal- en leesomgeving", doelzin: "De school zorgt voor een rijke taal- en leesomgeving." },
+  { code: "1B", domein: "Overkoepelend", kerndoel: "De school stimuleert de taalcompetentie van leerlingen.", titel: "Taal in de leergebieden", doelzin: "De school stimuleert de taalontwikkeling van de leerling in alle leergebieden." },
   { code: "2A", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Luisteren en lezen met begrip", doelzin: "De leerling toont begrip van zakelijke en literaire teksten." },
   { code: "2B", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Luisteren en lezen met diep begrip", doelzin: "De leerling evalueert en reflecteert op zakelijke en literaire teksten." },
   { code: "2C", domein: "Communicatie", kerndoel: "De leerling begrijpt teksten.", titel: "Bronnen verkennen", doelzin: "De leerling verkent de betrouwbaarheid van verschillende bronnen." },
@@ -173,33 +184,54 @@ var KERNDOELEN = [
 ];
 // Volgorde van de rijen op tafel, van boven naar onder.
 var DOMEINEN = ["Communicatie", "Literatuur", "Taal"];
-var STANDAARD_POOL = ["2A", "2B", "3B", "8B", "9A", "9B", "6A", "7A", "7B"];
+var OVERKOEPELEND = "Overkoepelend";
+var PER_RIJ = 3;
+var STANDAARD_POOL = KERNDOELEN.map(function (k) { return k.code; });
 
 function kd(code) { for (var i = 0; i < KERNDOELEN.length; i++) if (KERNDOELEN[i].code === code) return KERNDOELEN[i]; return null; }
 
-// Trek een willekeurige bal uit de nog niet getrokken pool. Puur.
+// Getrokken ballen per rij van het rekje, in volgorde van trekken.
+function rackRows(drawn) {
+  var rows = {};
+  DOMEINEN.forEach(function (d) { rows[d] = []; });
+  rows[OVERKOEPELEND] = [];
+  drawn.forEach(function (c) { var k = kd(c); if (k) rows[k.domein].push(c); });
+  return rows;
+}
+
+// Rekje vol: uit elk domein van de tafel drie ballen.
+function rackFull(drawn) {
+  var rows = rackRows(drawn);
+  return DOMEINEN.every(function (d) { return rows[d].length >= PER_RIJ; });
+}
+
+// Welke ballen kunnen er nog uit? Een domein met een volle rij doet niet meer mee.
+function eligible(pool, drawn) {
+  if (rackFull(drawn)) return [];
+  var rows = rackRows(drawn);
+  return pool.filter(function (c) {
+    if (drawn.indexOf(c) !== -1) return false;
+    var d = kd(c).domein;
+    return d === OVERKOEPELEND || rows[d].length < PER_RIJ;
+  });
+}
+
+// Trek een willekeurige bal uit de ballen die nog mogen. Puur.
 function drawBall(pool, drawn, rnd) {
-  var rest = pool.filter(function (c) { return drawn.indexOf(c) === -1; });
+  var rest = eligible(pool, drawn);
   if (!rest.length) return null;
   var ball = rest[Math.floor((rnd || Math.random)() * rest.length)];
   return { ball: ball, drawn: drawn.concat([ball]) };
 }
 
-// Plek in het rekje: rij = domein, kolom = volgorde binnen dat domein in de pool.
-function slotFor(pool, code) {
-  var k = kd(code); if (!k) return null;
-  var inDomain = pool.filter(function (c) { return kd(c).domein === k.domein; });
-  return { row: DOMEINEN.indexOf(k.domein), col: inDomain.indexOf(code) };
-}
-
-// Het rekje is 3 × 3: precies drie kerndoelen per domein.
+// Elk domein van de tafel heeft minstens drie ballen in de molen nodig.
 function poolValid(pool) {
-  return DOMEINEN.every(function (d) { return pool.filter(function (c) { var k = kd(c); return k && k.domein === d; }).length === 3; }) && pool.length === 9;
+  return DOMEINEN.every(function (d) { return pool.filter(function (c) { var k = kd(c); return k && k.domein === d; }).length >= PER_RIJ; });
 }
 // LOGIC-END
 
 /* ---------- opslag ---------- */
-var KEY = "kdb-molen-v1";
+var KEY = "kdb-molen-v2";
 function load() {
   try { var raw = localStorage.getItem(KEY); if (raw) { var v = JSON.parse(raw); if (v && v.v === 1 && poolValid(v.pool)) return v; } } catch (e) {}
   return fresh(STANDAARD_POOL);
@@ -241,6 +273,12 @@ var I = {
   spin: '<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>'
 };
 function ball(code, extra) { var k = kd(code); return h("div", { class: "bal b-" + k.domein + (extra ? " " + extra : ""), "aria-hidden": "true" }, h("span", { text: code })); }
+function gat(d, i, code, curCode) {
+  var k = code && kd(code);
+  return h("div", { class: "gat" + (code ? " vol" : "") + (d === OVERKOEPELEND ? " klein" : ""), id: "gat-" + d + "-" + i },
+    code ? ball(code, code === curCode ? "nu" : "") : h("div", { class: "kuil", "aria-hidden": "true" }),
+    h("p", { class: "onder" }, code ? h("span", null, h("span", { class: "sr", text: code + " " }), k.titel) : h("span", { class: "sr", text: "Leeg" })));
+}
 function domTeken(d) { return h("span", { class: "dom-teken t-" + d, "aria-hidden": "true" }); }
 function announce(msg) { var l = document.getElementById("live"); l.textContent = ""; setTimeout(function () { l.textContent = msg; }, 40); }
 function reducedMotion() { return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
@@ -252,14 +290,16 @@ var anim = null; // lopende trekking: { timers, animations, code }
 function tElapsed() { return T.elapsed + (T.running && T.startedAt ? Date.now() - T.startedAt : 0); }
 
 /* ---------- molen (SVG, decoratief; de inhoud staat in tekst ernaast) ---------- */
-var SPOTS = [[-58,78],[-18,92],[22,92],[62,76],[-84,42],[-42,56],[0,60],[42,56],[84,40]];
+// Stapel van onder naar boven in de kooi: 5 + 7 + 7 = 19 plekken.
+var SPOTS = [];
+[[100, 5], [74, 7], [48, 7]].forEach(function (r) { for (var i = 0; i < r[1]; i++) SPOTS.push([(i - (r[1] - 1) / 2) * 29 + (r[1] === 7 && r[0] === 48 ? 6 : 0), r[0]]); });
+var KLEUR = { Communicatie: "#92278F", Literatuur: "#7598C0", Taal: "#57257C", Overkoepelend: "#5A5560" };
 function molenSVG(remaining) {
   var balls = remaining.map(function (c, i) {
     var p = SPOTS[i % SPOTS.length], k = kd(c);
-    var fill = k.domein === "Communicatie" ? "#92278F" : k.domein === "Taal" ? "#57257C" : "#7598C0";
-    return '<g class="mbal"><circle cx="' + (180 + p[0]) + '" cy="' + (160 + p[1]) + '" r="21" fill="' + fill + '"/>' +
-      '<circle cx="' + (180 + p[0]) + '" cy="' + (160 + p[1]) + '" r="13" fill="#fff"/>' +
-      '<text x="' + (180 + p[0]) + '" y="' + (165 + p[1]) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#1F1A24">' + c + '</text></g>';
+    return '<g class="mbal"><circle cx="' + (180 + p[0]) + '" cy="' + (160 + p[1]) + '" r="14" fill="' + KLEUR[k.domein] + '"/>' +
+      '<circle cx="' + (180 + p[0]) + '" cy="' + (160 + p[1]) + '" r="9" fill="#fff"/>' +
+      '<text x="' + (180 + p[0]) + '" y="' + (163.5 + p[1]) + '" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1F1A24">' + c + '</text></g>';
   }).join("");
   var wires = "";
   for (var a = 0; a < 180; a += 22.5) wires += '<ellipse cx="180" cy="160" rx="' + Math.abs(Math.cos(a * Math.PI / 180) * 130).toFixed(1) + '" ry="130"/>';
@@ -287,37 +327,39 @@ function render() {
   var curCode = shown.length ? shown[shown.length - 1] : null;
   var cur = curCode ? kd(curCode) : null;
   var remaining = T.pool.filter(function (c) { return T.drawn.indexOf(c) === -1; });
-  var done = !remaining.length;
+  var done = !eligible(T.pool, T.drawn).length;
+  var rows = rackRows(shown);
+  var inRack = DOMEINEN.reduce(function (n, d) { return n + rows[d].length; }, 0);
 
   var spinBtn = h("button", { class: "btn primair groot", type: "button", id: "trek", disabled: (done && !anim) || T.finished, onclick: onSpin },
-    icon(I.spin), anim ? "Sla over" : done ? "Molen is leeg" : "Draai aan de molen");
+    icon(I.spin), anim ? "Sla over" : done ? "Rekje is vol" : "Draai aan de molen");
 
   var molen = h("section", { class: "molen", "aria-label": "Bingomolen" });
   var art = h("div", { id: "molen-art", style: "width:100%;display:grid;justify-items:center" });
   art.innerHTML = molenSVG(anim ? remaining.concat([anim.code]) : remaining);
   molen.appendChild(art);
   molen.appendChild(spinBtn);
-  molen.appendChild(h("p", { class: "teller", text: "Bal " + T.drawn.length + " van " + T.pool.length + " · nog " + remaining.length + " in de molen" }));
+  molen.appendChild(h("p", { class: "teller", text: inRack + " van 9 in het rekje · " + (anim ? remaining.length + 1 : remaining.length) + " ballen in de molen" }));
 
+  var extra = T.pool.filter(function (c) { return kd(c).domein === OVERKOEPELEND; }).length;
   var rekje = h("section", { class: "rekje", "aria-labelledby": "rek-kop" },
-    h("h2", { class: "sr", id: "rek-kop", text: "Rekje met getrokken ballen, per domein een rij, zoals de boeken op tafel" }),
+    h("h2", { class: "sr", id: "rek-kop", text: "Rekje met getrokken ballen, per domein een rij van drie, zoals de boeken op tafel" }),
     DOMEINEN.map(function (d) {
-      var codes = T.pool.filter(function (c) { return kd(c).domein === d; });
-      return h("div", { class: "rek-rij", role: "group", "aria-label": "Rij " + d },
-        h("h3", { class: "rek-label" }, domTeken(d), d),
-        codes.map(function (c) {
-          var got = shown.indexOf(c) !== -1, k = kd(c);
-          return h("div", { class: "gat" + (got ? " vol" : ""), id: "gat-" + c },
-            got ? ball(c, c === curCode ? "nu" : "") : h("div", { class: "kuil", "aria-hidden": "true", text: c }),
-            h("p", { class: "onder" }, got ? k.titel : "", h("span", { class: "sr", text: got ? "" : c + ", nog in de molen" })));
-        }));
-    }));
+      var vol = rows[d].length >= PER_RIJ;
+      return h("div", { class: "rek-rij", role: "group", "aria-label": "Rij " + d + ", " + rows[d].length + " van 3" + (vol ? ", vol" : "") },
+        h("h3", { class: "rek-label" }, domTeken(d), h("span", null, d, h("span", { class: "rek-tel", text: rows[d].length + "/3" }))),
+        [0, 1, 2].map(function (i) { return gat(d, i, rows[d][i], curCode); }));
+    }),
+    extra ? h("div", { class: "rek-rij extra", role: "group", "aria-label": "Gespreksballen Overkoepelend, opdracht aan de school, zonder boek" },
+      h("h3", { class: "rek-label" }, domTeken(OVERKOEPELEND), h("span", null, "Overkoepelend", h("span", { class: "rek-tel", text: "gesprek, geen boek" }))),
+      Array.from({ length: extra }, function (_, i) { return gat(OVERKOEPELEND, i, rows[OVERKOEPELEND][i], curCode); })) : null);
 
   var uitslag = h("section", { class: "uitslag", "aria-labelledby": "u-kop" },
     h("h2", { class: "sr", id: "u-kop", text: "Laatst getrokken bal" }),
     cur ? ball(cur.code) : h("div", { class: "kuil", style: "--bal:112px", "aria-hidden": "true" }),
     cur ? h("div", { style: "display:grid;gap:6px" },
       h("p", { class: "u-meta" }, h("span", { class: "rij", style: "gap:8px" }, domTeken(cur.domein), h("b", { text: cur.domein + " · " + cur.code }), " · Kerndoel " + cur.code.charAt(0) + ": " + cur.kerndoel)),
+      cur.domein === OVERKOEPELEND ? h("p", { class: "gesprek", text: "Gespreksbal, geen boek: hoe zorgen wíj hiervoor op school?" }) : null,
       h("p", { class: "u-titel", text: cur.titel }),
       h("p", { class: "u-zin", text: cur.doelzin }))
       : h("p", { class: "u-leeg", text: T.finished ? "Het spel is afgelopen." : "Draai aan de molen om te beginnen." }),
@@ -365,7 +407,8 @@ function fly() {
   var svgEl = document.querySelector("#molen-art svg");
   var r = svgEl.getBoundingClientRect(), s = r.width / 360;
   var sx = r.left + 352 * s, sy = r.top + 344 * s;
-  var target = document.querySelector("#gat-" + anim.code + " .kuil").getBoundingClientRect();
+  var d = kd(anim.code).domein;
+  var target = document.querySelector("#gat-" + d + "-" + rackRows(T.drawn)[d].indexOf(anim.code) + " .kuil").getBoundingClientRect();
   var size = target.width;
   var b = ball(anim.code, "vlieg"); b.style.width = b.style.height = size + "px";
   document.body.appendChild(b);
@@ -393,7 +436,9 @@ function land() {
 
 function afterLand() {
   var k = kd(T.drawn[T.drawn.length - 1]);
-  announce("Bal " + T.drawn.length + ": " + k.code + ", " + k.domein + ". " + k.titel + ". " + k.doelzin);
+  var full = rackFull(T.drawn);
+  announce((k.domein === OVERKOEPELEND ? "Gespreksbal " : "Bal ") + k.code + ", " + k.domein + ". " + k.titel + ". " + k.doelzin +
+    (k.domein === OVERKOEPELEND ? " Geen boek: bespreek hoe jullie school hiervoor zorgt." : "") + (full ? " Het rekje is vol." : ""));
   var b = document.getElementById("trek"); if (b && !b.disabled) b.focus();
 }
 
@@ -485,7 +530,7 @@ function settings() {
     var sel = T.pool.slice();
     var counts = {};
     if (locked) b.appendChild(h("p", { class: "status fout", text: "Het spel loopt. Start een nieuw spel om de ballen te wijzigen." }));
-    b.appendChild(h("p", { class: "hulp", text: "Kies per domein precies drie kerndoelen. Elke rij in het rekje is een domein, net als de rijen boeken op tafel." }));
+    b.appendChild(h("p", { class: "hulp", text: "Standaard zitten alle 19 doelen in de molen. Uit elk domein komen er precies drie uit; daarna doet dat domein niet meer mee. Overkoepelend (1A, 1B) zijn gespreksballen zonder boek. Elk tafeldomein heeft minstens drie ballen nodig." }));
     var saveBtn = h("button", { class: "btn primair", type: "button", onclick: function () {
       T.pool = KERNDOELEN.map(function (k) { return k.code; }).filter(function (c) { return sel.indexOf(c) !== -1; });
       store(); close(); render(); announce("Ballen opgeslagen.");
@@ -493,13 +538,14 @@ function settings() {
     function upd() {
       DOMEINEN.forEach(function (d) {
         var n = sel.filter(function (c) { return kd(c).domein === d; }).length;
-        counts[d].textContent = n + " van 3";
-        counts[d].className = "status" + (n === 3 ? " goed" : " fout");
+        counts[d].textContent = n + " in de molen" + (n < 3 ? ", minimaal 3" : "");
+        counts[d].className = "status" + (n >= 3 ? " goed" : " fout");
       });
+      counts[OVERKOEPELEND].textContent = sel.filter(function (c) { return kd(c).domein === OVERKOEPELEND; }).length + " in de molen";
       saveBtn.disabled = locked || !poolValid(sel);
     }
     var box = h("div", { style: "display:grid;gap:10px" });
-    DOMEINEN.forEach(function (d) {
+    DOMEINEN.concat([OVERKOEPELEND]).forEach(function (d) {
       counts[d] = h("span");
       var fs = h("fieldset", { disabled: locked }, h("legend", null, domTeken(d), d, " · ", counts[d]));
       KERNDOELEN.filter(function (k) { return k.domein === d; }).forEach(function (k) {
