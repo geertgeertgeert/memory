@@ -659,7 +659,7 @@ function settings() {
       box.appendChild(fs);
     });
     b.appendChild(box);
-    b.appendChild(h("p", null, h("a", { href: "speelkaart.html", target: "_blank", rel: "noopener" }, "Lege speelkaart afdrukken (A4 liggend)"), " · ", h("a", { href: "stappenplan.html", target: "_blank", rel: "noopener" }, "Stappenplan tafel inrichten (A4)")));
+    b.appendChild(h("p", null, h("a", { href: "speelkaart.html", target: "_blank", rel: "noopener" }, "Lege speelkaart afdrukken (A4 liggend)"), " · ", "Stappenplan tafel: ", h("a", { href: "stappenplan-basis.html", target: "_blank", rel: "noopener" }, "basis"), " of ", h("a", { href: "stappenplan.html", target: "_blank", rel: "noopener" }, "verdieping")));
     b.appendChild(h("div", { class: "rij" }, saveBtn,
       h("button", { class: "btn gevaar", type: "button", onclick: function () {
         close();
