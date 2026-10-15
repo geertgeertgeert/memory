@@ -1,0 +1,14 @@
+ok  standaardpool: 3 per domein, alleen Nederlands
+ok  drawBall trekt elke bal precies één keer
+ok  rij
+ok  kolom
+ok  diagonaal
+ok  geen lijn bij twee vakjes
+ok  kerndoel niet dubbel
+ok  boek niet dubbel
+ok  onderbouwing verplicht
+ok  terugdraaien maakt vakje vrij
+ok  volle kaart
+ok  samenhang: domeinen in een lijn
+
+12 tests geslaagd
