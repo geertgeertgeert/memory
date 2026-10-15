@@ -7,7 +7,7 @@ const html = fs.readFileSync(__dirname + "/index.html", "utf8");
 const code = html.split("// LOGIC-START")[1].split("// LOGIC-END")[0];
 const ctx = {};
 vm.createContext(ctx);
-vm.runInContext(code + "\nthis.api = { KERNDOELEN, DOMEINEN, OVERKOEPELEND, STANDAARD_POOL, drawBall, eligible, rackRows, rackFull, poolValid, kd };", ctx);
+vm.runInContext(code + "\nthis.api = { KERNDOELEN, DOMEINEN, OVERKOEPELEND, STANDAARD_POOL, drawBall, eligible, rackRows, rackFull, poolValid, kd, placeBall, rackGrid };", ctx);
 const L = ctx.api;
 let n = 0;
 function t(name, fn) { fn(); n++; console.log("ok  " + name); }
@@ -45,6 +45,31 @@ t("gespreksbal telt niet mee voor het rekje", () => {
 t("pool met maar 2 Literatuur-ballen is ongeldig", () => {
   assert.ok(!L.poolValid(L.STANDAARD_POOL.filter(c => c !== "8A" && c !== "8B")));
   assert.ok(L.poolValid(L.STANDAARD_POOL));
+});
+
+t("plek in de rij is willekeurig: elke positie komt voor", () => {
+  const seen = new Set();
+  for (let i = 0; i < 300; i++) seen.add(L.placeBall({}, [], "2A", 3, Math.random));
+  assert.strictEqual([...seen].sort().join(","), "0,1,2");
+});
+t("een bezette plek wordt nooit opnieuw gekozen", () => {
+  for (let i = 0; i < 300; i++) {
+    const col = L.placeBall({ "2A": 0, "2B": 2 }, ["2A", "2B"], "3A", 3, Math.random);
+    assert.strictEqual(col, 1);
+  }
+});
+t("1000 spellen: rekje-raster zonder dubbele plekken", () => {
+  for (let g = 0; g < 1000; g++) {
+    let d = [], slots = {}, r;
+    while ((r = L.drawBall(L.STANDAARD_POOL, d, Math.random))) {
+      const dom = L.kd(r.ball).domein;
+      slots[r.ball] = L.placeBall(slots, d, r.ball, dom === "Overkoepelend" ? 2 : 3, Math.random);
+      assert.ok(slots[r.ball] >= 0);
+      d = r.drawn;
+    }
+    const grid = L.rackGrid(d, slots, { Communicatie: 3, Literatuur: 3, Taal: 3, Overkoepelend: 2 });
+    L.DOMEINEN.forEach(dm => assert.strictEqual(grid[dm].filter(Boolean).length, 3));
+  }
 });
 
 console.log(`\n${n} tests geslaagd`);

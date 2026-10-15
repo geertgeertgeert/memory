@@ -60,7 +60,9 @@ button, input { font: inherit; color: inherit; }
 .kop h1 { font-size: 30px; color: var(--donker); }
 .klok { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--donker); }
 .teller { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.speelveld { display: grid; grid-template-columns: minmax(260px, 380px) minmax(0, 1fr); gap: 32px; align-items: center; }
+.speelveld { position: relative; display: grid; grid-template-columns: minmax(260px, 380px) minmax(0, 1fr); gap: 72px; align-items: center; }
+.speelveld > section { position: relative; z-index: 1; }
+.buis { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 0; }
 @media (max-width: 860px) { .speelveld { grid-template-columns: minmax(0, 1fr); } :root { --bal: 64px; } }
 
 /* molen */
@@ -80,7 +82,10 @@ button, input { font: inherit; color: inherit; }
 
 /* rekje: rijen = domeinen, zoals de boeken op tafel */
 .rekje { background: var(--vlak); border: 2px solid var(--lijn); border-radius: 18px; padding: 12px 20px; display: grid; gap: 8px; }
-.rek-rij { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 12px; align-items: center; }
+.rek-rij { display: grid; grid-template-columns: 170px repeat(3, minmax(0, 1fr)); gap: 12px; align-items: center; border-radius: 12px; padding: 2px 8px; transition: background-color .2s, box-shadow .2s; }
+.rek-rij.actief, .rek-rij.zoekt { background: var(--wit); box-shadow: 0 0 0 3px var(--paars); }
+.past { display: none; font-size: 14px; font-weight: 700; color: var(--paars); line-height: 1.2; }
+.actief .past, .zoekt .past { display: block; }
 .rek-rij + .rek-rij { border-top: 1px solid var(--lijn); padding-top: 8px; }
 .rek-label { font-weight: 700; font-size: 20px; display: flex; align-items: center; gap: 8px; }
 .gat { display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
@@ -224,6 +229,30 @@ function drawBall(pool, drawn, rnd) {
   return { ball: ball, drawn: drawn.concat([ball]) };
 }
 
+// Kies een willekeurige vrije plek in de rij van deze bal. De plek zegt niets
+// over welk boek: de bal past bij elk boek in de rij.
+function placeBall(slots, drawn, code, size, rnd) {
+  var d = kd(code).domein, taken = [];
+  drawn.forEach(function (c) { if (c !== code && kd(c).domein === d && slots[c] !== undefined) taken.push(slots[c]); });
+  var free = [];
+  for (var i = 0; i < size; i++) if (taken.indexOf(i) === -1) free.push(i);
+  if (!free.length) return -1;
+  return free[Math.floor((rnd || Math.random)() * free.length)];
+}
+
+// Rekje als raster: per rij een lijst plekken met de code of null.
+function rackGrid(drawn, slots, sizes) {
+  var g = {};
+  Object.keys(sizes).forEach(function (d) { g[d] = new Array(sizes[d]).fill(null); });
+  drawn.forEach(function (c) {
+    var d = kd(c).domein, col = slots[c];
+    if (!g[d]) return;
+    if (col === undefined || g[d][col]) col = g[d].indexOf(null);
+    if (col >= 0) g[d][col] = c;
+  });
+  return g;
+}
+
 // Elk domein van de tafel heeft minstens drie ballen in de molen nodig.
 function poolValid(pool) {
   return DOMEINEN.every(function (d) { return pool.filter(function (c) { var k = kd(c); return k && k.domein === d; }).length >= PER_RIJ; });
@@ -231,13 +260,13 @@ function poolValid(pool) {
 // LOGIC-END
 
 /* ---------- opslag ---------- */
-var KEY = "kdb-molen-v2";
+var KEY = "kdb-molen-v3";
 function load() {
-  try { var raw = localStorage.getItem(KEY); if (raw) { var v = JSON.parse(raw); if (v && v.v === 1 && poolValid(v.pool)) return v; } } catch (e) {}
+  try { var raw = localStorage.getItem(KEY); if (raw) { var v = JSON.parse(raw); if (v && v.v === 1 && poolValid(v.pool)) { v.slots = v.slots || {}; return v; } } } catch (e) {}
   return fresh(STANDAARD_POOL);
 }
 function store() { try { localStorage.setItem(KEY, JSON.stringify(T)); } catch (e) {} }
-function fresh(pool) { return { v: 1, pool: pool.slice(), drawn: [], elapsed: 0, startedAt: null, running: false, winners: [], finished: false }; }
+function fresh(pool) { return { v: 1, pool: pool.slice(), drawn: [], slots: {}, elapsed: 0, startedAt: null, running: false, winners: [], finished: false }; }
 
 /* ---------- helpers ---------- */
 function h(tag, attrs) {
@@ -278,6 +307,11 @@ function gat(d, i, code, curCode) {
   return h("div", { class: "gat" + (code ? " vol" : "") + (d === OVERKOEPELEND ? " klein" : ""), id: "gat-" + d + "-" + i },
     code ? ball(code, code === curCode ? "nu" : "") : h("div", { class: "kuil", "aria-hidden": "true" }),
     h("p", { class: "onder" }, code ? h("span", null, h("span", { class: "sr", text: code + " " }), k.titel) : h("span", { class: "sr", text: "Leeg" })));
+}
+function rowSizes() {
+  var o = {}; DOMEINEN.forEach(function (d) { o[d] = PER_RIJ; });
+  o[OVERKOEPELEND] = T.pool.filter(function (c) { return kd(c).domein === OVERKOEPELEND; }).length;
+  return o;
 }
 function domTeken(d) { return h("span", { class: "dom-teken t-" + d, "aria-hidden": "true" }); }
 function announce(msg) { var l = document.getElementById("live"); l.textContent = ""; setTimeout(function () { l.textContent = msg; }, 40); }
@@ -328,8 +362,10 @@ function render() {
   var cur = curCode ? kd(curCode) : null;
   var remaining = T.pool.filter(function (c) { return T.drawn.indexOf(c) === -1; });
   var done = !eligible(T.pool, T.drawn).length;
-  var rows = rackRows(shown);
-  var inRack = DOMEINEN.reduce(function (n, d) { return n + rows[d].length; }, 0);
+  var rows = rackGrid(shown, T.slots, rowSizes());
+  var filled = function (d) { return rows[d].filter(Boolean).length; };
+  var inRack = DOMEINEN.reduce(function (n, d) { return n + filled(d); }, 0);
+  var activeRow = !anim && cur ? cur.domein : null;
 
   var spinBtn = h("button", { class: "btn primair groot", type: "button", id: "trek", disabled: (done && !anim) || T.finished, onclick: onSpin },
     icon(I.spin), anim ? "Sla over" : done ? "Rekje is vol" : "Draai aan de molen");
@@ -345,14 +381,14 @@ function render() {
   var rekje = h("section", { class: "rekje", "aria-labelledby": "rek-kop" },
     h("h2", { class: "sr", id: "rek-kop", text: "Rekje met getrokken ballen, per domein een rij van drie, zoals de boeken op tafel" }),
     DOMEINEN.map(function (d) {
-      var vol = rows[d].length >= PER_RIJ;
-      return h("div", { class: "rek-rij", role: "group", "aria-label": "Rij " + d + ", " + rows[d].length + " van 3" + (vol ? ", vol" : "") },
-        h("h3", { class: "rek-label" }, domTeken(d), h("span", null, d, h("span", { class: "rek-tel", text: rows[d].length + "/3" }))),
-        [0, 1, 2].map(function (i) { return gat(d, i, rows[d][i], curCode); }));
+      var vol = filled(d) >= PER_RIJ;
+      return h("div", { class: "rek-rij" + (activeRow === d ? " actief" : ""), id: "rij-" + d, role: "group", "aria-label": "Rij " + d + ", " + filled(d) + " van 3" + (vol ? ", vol" : "") },
+        h("h3", { class: "rek-label" }, domTeken(d), h("span", null, d, h("span", { class: "rek-tel", text: filled(d) + "/3" }), h("span", { class: "past", text: "Past bij elk boek in deze rij" }))),
+        rows[d].map(function (c, i) { return gat(d, i, c, curCode); }));
     }),
-    extra ? h("div", { class: "rek-rij extra", role: "group", "aria-label": "Gespreksballen Overkoepelend, opdracht aan de school, zonder boek" },
-      h("h3", { class: "rek-label" }, domTeken(OVERKOEPELEND), h("span", null, "Overkoepelend", h("span", { class: "rek-tel", text: "gesprek, geen boek" }))),
-      Array.from({ length: extra }, function (_, i) { return gat(OVERKOEPELEND, i, rows[OVERKOEPELEND][i], curCode); })) : null);
+    extra ? h("div", { class: "rek-rij extra" + (activeRow === OVERKOEPELEND ? " actief" : ""), id: "rij-" + OVERKOEPELEND, role: "group", "aria-label": "Gespreksballen Overkoepelend, opdracht aan de school, zonder boek" },
+      h("h3", { class: "rek-label" }, domTeken(OVERKOEPELEND), h("span", null, "Overkoepelend", h("span", { class: "rek-tel", text: "gesprek, geen boek" }), h("span", { class: "past", text: "Bespreek: hoe doen wij dit?" }))),
+      rows[OVERKOEPELEND].map(function (c, i) { return gat(OVERKOEPELEND, i, c, curCode); })) : null);
 
   var uitslag = h("section", { class: "uitslag", "aria-labelledby": "u-kop" },
     h("h2", { class: "sr", id: "u-kop", text: "Laatst getrokken bal" }),
@@ -379,10 +415,49 @@ function render() {
         h("button", { class: "btn stil", type: "button", onclick: settings, "aria-label": "Instellingen" }, icon(I.gear))
       )
     ),
-    h("main", { class: "speelveld" }, molen, rekje),
+    h("main", { class: "speelveld", id: "veld" }, molen, rekje),
     uitslag
   ));
+  drawTube();
 }
+
+/* ---------- buis tussen molen en rekje ---------- */
+function tubeGeom() {
+  var svgEl = document.querySelector("#molen-art svg"), rek = document.querySelector(".rekje"), col = document.querySelector(".molen");
+  if (!svgEl || !rek) return null;
+  var r = svgEl.getBoundingClientRect(), R = rek.getBoundingClientRect(), C = col.getBoundingClientRect(), s = r.width / 360;
+  if (R.left < C.right) return null;                       // gestapeld op een smal scherm: geen buis
+  var rows = Array.prototype.map.call(document.querySelectorAll(".rek-rij"), function (row) {
+    var hole = row.querySelector(".kuil, .bal").getBoundingClientRect();
+    return { el: row, y: hole.top + hole.height / 2 };
+  });
+  return { ex: r.left + 352 * s, ey: r.top + 344 * s, s: s, tx: (C.right + R.left) / 2, rackLeft: R.left, rows: rows };
+}
+
+function drawTube() {
+  var veld = document.getElementById("veld"); if (!veld) return;
+  var old = veld.querySelector(".buis"); if (old) old.remove();
+  var g = tubeGeom(); if (!g) return;
+  var V = veld.getBoundingClientRect(), ox = V.left, oy = V.top;
+  var ys = g.rows.map(function (r) { return r.y; }).concat([g.ey]);
+  var top = Math.min.apply(null, ys), bot = Math.max.apply(null, ys);
+  var d = "M" + (g.ex - ox) + " " + (g.ey - oy) + " H" + (g.tx - ox) +
+    " M" + (g.tx - ox) + " " + (top - oy) + " V" + (bot - oy) +
+    g.rows.map(function (r) { return " M" + (g.tx - ox) + " " + (r.y - oy) + " H" + (g.rackLeft - ox + 6); }).join("");
+  var NS = "http://www.w3.org/2000/svg";
+  var svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "buis"); svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("width", V.width); svg.setAttribute("height", V.height);
+  [["#57257C", 42], ["#F6F3F8", 34], ["#FFFFFF", 8]].forEach(function (st, i) {
+    var p = document.createElementNS(NS, "path");
+    p.setAttribute("d", d); p.setAttribute("fill", "none"); p.setAttribute("stroke", st[0]);
+    p.setAttribute("stroke-width", st[1]); p.setAttribute("stroke-linecap", "round"); p.setAttribute("stroke-linejoin", "round");
+    if (i === 2) { p.setAttribute("transform", "translate(-8,-8)"); p.setAttribute("opacity", ".8"); }
+    svg.appendChild(p);
+  });
+  veld.insertBefore(svg, veld.firstChild);
+}
+window.addEventListener("resize", function () { if (!anim) drawTube(); });
 
 /* ---------- trekken met animatie ---------- */
 function onSpin() {
@@ -390,6 +465,7 @@ function onSpin() {
   var res = drawBall(T.pool, T.drawn, Math.random);
   if (!res) return;
   if (!T.drawn.length) { T.running = true; T.startedAt = Date.now(); }
+  T.slots[res.ball] = placeBall(T.slots, T.drawn, res.ball, rowSizes()[kd(res.ball).domein], Math.random);
   T.drawn = res.drawn; store();
   if (reducedMotion()) { render(); afterLand(); return; }
   anim = { code: res.ball, timers: [], animations: [] };
@@ -404,24 +480,51 @@ function fly() {
   if (!anim) return;
   // de bal verlaat de kooi
   document.getElementById("molen-art").innerHTML = molenSVG(T.pool.filter(function (c) { return T.drawn.indexOf(c) === -1; }));
-  var svgEl = document.querySelector("#molen-art svg");
-  var r = svgEl.getBoundingClientRect(), s = r.width / 360;
-  var sx = r.left + 352 * s, sy = r.top + 344 * s;
-  var d = kd(anim.code).domein;
-  var target = document.querySelector("#gat-" + d + "-" + rackRows(T.drawn)[d].indexOf(anim.code) + " .kuil").getBoundingClientRect();
-  var size = target.width;
-  var b = ball(anim.code, "vlieg"); b.style.width = b.style.height = size + "px";
+  var code = anim.code, d = kd(code).domein, col = T.slots[code];
+  var row = document.getElementById("rij-" + d);
+  var holes = Array.prototype.map.call(row.querySelectorAll(".gat"), function (el) { return el.querySelector(".kuil, .bal").getBoundingClientRect(); });
+  var target = holes[col], size = target.width, half = size / 2;
+  var rowY = target.top + half;
+  var g = tubeGeom();
+  var svgEl = document.querySelector("#molen-art svg"), r = svgEl.getBoundingClientRect(), s = r.width / 360;
+  var ex = r.left + 352 * s, ey = r.top + 344 * s;
+
+  // route: lijst van [x, y, schaal, ms vanaf vorige punt]
+  var pts = [[ex - 22 * s, ey - 28 * s, .42, 0], [ex, ey, .42, 220]];
+  var tubeSc = Math.min(.42, 30 / size);
+  function seg(x, y, sc, speed, min) {
+    var p = pts[pts.length - 1], dist = Math.hypot(x - p[0], y - p[1]);
+    pts.push([x, y, sc, Math.max(min || 120, dist / speed)]);
+  }
+  if (g) {
+    seg(g.tx, ey, tubeSc, .6);
+    seg(g.tx, rowY, tubeSc, .6);
+    seg(g.rackLeft + 18, rowY, .7, .5, 200);
+  } else {
+    seg((ex + target.left) / 2, Math.min(ey, rowY) - 100, .8, .7, 300);
+  }
+  var rowStart = pts.reduce(function (t, p) { return t + p[3]; }, 0);
+  // langs elk gat in de rij: het past bij elk boek
+  holes.forEach(function (hr) {
+    seg(hr.left + half, rowY - 14, 1.05, .5, 260);
+    pts.push([hr.left + half, rowY - 14, 1.05, 220]);           // even stil boven elk boek
+  });
+  seg(target.left + half, rowY - 14, 1.05, .6, 180);
+  pts.push([target.left + half, rowY, 1, 220]);
+
+  var total = pts.reduce(function (t, p) { return t + p[3]; }, 0), t = 0, rot = 0;
+  var frames = pts.map(function (p, i) {
+    t += p[3];
+    if (i) rot += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) / (size * p[2] / 2) * 57.3 * (p[0] >= pts[i - 1][0] ? 1 : -1);
+    return { transform: "translate(" + (p[0] - half) + "px," + (p[1] - half) + "px) scale(" + p[2] + ") rotate(" + rot.toFixed(0) + "deg)", offset: t / total };
+  });
+  frames[0].offset = 0; frames[frames.length - 1].offset = 1;
+
+  var b = ball(code, "vlieg"); b.style.width = b.style.height = size + "px";
   document.body.appendChild(b);
-  var x0 = sx - size / 2, y0 = sy - size / 2, x1 = target.left, y1 = target.top;
-  var peak = Math.min(y0, y1) - 120;
-  var a = b.animate([
-    { transform: "translate(" + (x0 - 40 * s) + "px," + (y0 - 50 * s) + "px) scale(.45) rotate(0deg)", offset: 0 },
-    { transform: "translate(" + x0 + "px," + y0 + "px) scale(.6) rotate(120deg)", offset: .18 },
-    { transform: "translate(" + ((x0 + x1) / 2) + "px," + peak + "px) scale(.9) rotate(400deg)", offset: .6 },
-    { transform: "translate(" + x1 + "px," + (y1 - 8) + "px) scale(1.05) rotate(700deg)", offset: .9 },
-    { transform: "translate(" + x1 + "px," + y1 + "px) scale(1) rotate(720deg)", offset: 1 }
-  ], { duration: 950, easing: "cubic-bezier(.35,.1,.35,1)", fill: "forwards" });
+  var a = b.animate(frames, { duration: total, easing: "linear", fill: "forwards" });
   anim.ball = b; anim.animations.push(a);
+  anim.timers.push(setTimeout(function () { row.classList.add("zoekt"); }, rowStart));
   a.onfinish = land;
 }
 
@@ -438,7 +541,7 @@ function afterLand() {
   var k = kd(T.drawn[T.drawn.length - 1]);
   var full = rackFull(T.drawn);
   announce((k.domein === OVERKOEPELEND ? "Gespreksbal " : "Bal ") + k.code + ", " + k.domein + ". " + k.titel + ". " + k.doelzin +
-    (k.domein === OVERKOEPELEND ? " Geen boek: bespreek hoe jullie school hiervoor zorgt." : "") + (full ? " Het rekje is vol." : ""));
+    (k.domein === OVERKOEPELEND ? " Geen boek: bespreek hoe jullie school hiervoor zorgt." : " Past bij elk boek in de rij " + k.domein + ".") + (full ? " Het rekje is vol." : ""));
   var b = document.getElementById("trek"); if (b && !b.disabled) b.focus();
 }
 

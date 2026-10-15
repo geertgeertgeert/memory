@@ -5,5 +5,8 @@ ok  een volle rij doet niet meer mee
 ok  rekje vol → molen stopt
 ok  gespreksbal telt niet mee voor het rekje
 ok  pool met maar 2 Literatuur-ballen is ongeldig
+ok  plek in de rij is willekeurig: elke positie komt voor
+ok  een bezette plek wordt nooit opnieuw gekozen
+ok  1000 spellen: rekje-raster zonder dubbele plekken
 
-7 tests geslaagd
+10 tests geslaagd
