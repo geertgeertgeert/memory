@@ -1,0 +1,998 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Blokklas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: links de blokkenklas als zwevend diorama met een hotbar eronder, rechts het lesboek (missie, tekst, transcript). Op telefoon onder elkaar. Eén bewust donkere spelwereld. */
+:root{
+  --night:#151a25; --panel:#20273a; --slot:#2c3449; --slot-hi:#3a4462; --edge:#0b0e15; --bevel:#4a5578;
+  --chalk:#eef0e6; --muted:#a6aec4; --gold:#f2c14e; --think:#5fd4b8; --read:#b3a6f5; --warn:#ff8a7a; --ok:#9bdc6a;
+  --sky-a:#7fb6e8; --sky-b:#c9e3f2;
+  --f-pix:"Pixelify Sans","Courier New",monospace; --f-body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--night);color:var(--chalk);font-family:var(--f-body);font-size:15px;line-height:1.45;overflow:hidden}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:14px;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.pix{font-family:var(--f-pix)}
+.frame{border:3px solid var(--edge);box-shadow:inset 3px 3px 0 rgba(255,255,255,.07),inset -3px -3px 0 rgba(0,0,0,.35)}
+/* ---------- wereld ---------- */
+.world{position:relative;min-width:0;min-height:0;background:linear-gradient(180deg,var(--sky-a),var(--sky-b));overflow:hidden}
+.world canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.world canvas:active{cursor:grabbing}
+.hud{position:absolute;left:12px;top:12px;right:12px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;pointer-events:none}
+.hudbox{background:rgba(21,26,37,.82);padding:8px 10px;font-family:var(--f-pix);pointer-events:auto;min-width:0}
+.hudbox h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.02em;text-wrap:balance}
+.hudbox .sub{font-size:13px;color:var(--muted)}
+.meter{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:4px}
+.bar{width:140px;height:10px;background:#0c0f17;border:2px solid var(--edge);position:relative}
+.bar>i{position:absolute;inset:0 auto 0 0;background:var(--ok);width:50%;transition:width .4s}
+.bar.xp>i{background:var(--gold)}
+.timer{font-variant-numeric:tabular-nums;font-size:22px;text-align:right}
+.rec{display:inline-block;width:10px;height:10px;background:var(--warn);margin-right:6px;vertical-align:middle;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.bubbles{position:absolute;inset:0;pointer-events:none}
+.bub{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--f-pix);transition:opacity .3s}
+.bub .say{background:#fbfaf2;color:#1b1f2a;border:3px solid var(--edge);padding:4px 8px;font-size:13px;max-width:190px;text-align:center;line-height:1.2;display:none}
+.bub.q .say,.bub.aha .say,.bub.lost .say{display:block}
+.bub .ic{width:22px;height:22px;display:grid;place-items:center;font-weight:700;font-size:15px;border:3px solid var(--edge);background:#fbfaf2;color:#1b1f2a;opacity:0;transition:opacity .2s}
+.bub.q .ic,.bub.aha .ic,.bub.zz .ic,.bub.lost .ic{opacity:1}
+.bub.q .ic{background:var(--gold)} .bub.aha .ic{background:var(--ok)} .bub.zz .ic{background:var(--read)} .bub.lost .ic{background:var(--warn)}
+.bub .nm{font-size:11px;color:#1b1f2a;background:rgba(251,250,242,.75);padding:0 4px}
+.bub .mb{width:36px;height:6px;background:#0c0f17;border:2px solid var(--edge)}
+.bub .mb>i{display:block;height:100%;background:var(--ok);width:50%;transition:width .4s}
+.toasts{position:absolute;right:12px;top:84px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none}
+.toast{background:rgba(21,26,37,.9);border:3px solid var(--edge);padding:5px 10px;font-family:var(--f-pix);font-size:14px;animation:tin .25s steps(3)}
+.toast b{color:var(--gold)} .toast.bad b{color:var(--warn)}
+@keyframes tin{from{transform:translateX(30px);opacity:0}}
+.partial{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);max-width:min(80%,640px);background:rgba(21,26,37,.88);padding:6px 12px;font-size:15px;font-style:italic;color:var(--chalk);border:3px solid var(--edge)}
+.hotbar{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:4px;padding:4px;background:rgba(11,14,21,.85);border:3px solid var(--edge);max-width:calc(100% - 24px);overflow-x:auto}
+.slot{position:relative;min-width:62px;height:58px;padding:4px 6px 12px;background:var(--slot);border:3px solid var(--edge);box-shadow:inset 3px 3px 0 var(--bevel),inset -3px -3px 0 rgba(0,0,0,.4);font-family:var(--f-pix);font-size:13px;line-height:1.05;cursor:pointer;display:grid;place-items:center;text-align:center}
+.slot:hover{background:var(--slot-hi)}
+.slot:disabled{opacity:.45;cursor:not-allowed}
+.slot kbd{position:absolute;right:3px;bottom:1px;font-family:var(--f-pix);font-size:10px;color:var(--muted)}
+.slot .glyph{font-size:20px;line-height:1}
+.slot.mic{min-width:84px;background:#3c2f45}
+.slot.mic.on{background:#7a2e3a;box-shadow:inset 3px 3px 0 #b04a5a,inset -3px -3px 0 rgba(0,0,0,.4)}
+.slot.go{background:#2f4a33}
+/* ---------- lesboek ---------- */
+.book{min-width:0;min-height:0;background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.sec{padding:14px 16px;border-bottom:3px solid var(--edge);display:flex;flex-direction:column;gap:8px}
+.sec h2{font-family:var(--f-pix);font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:0;font-weight:600}
+.mission p{margin:0}
+.crit{margin:0;padding-left:20px;font-size:14px;color:var(--muted)}
+.crit li{margin:2px 0}
+.crit li.hit{color:var(--chalk)} .crit li.hit::marker{content:"■ ";color:var(--ok)}
+.crit li::marker{content:"□ "}
+.text h3{margin:0;font-size:17px;font-family:var(--f-pix);font-weight:700}
+.para{padding:8px 10px;border:3px solid transparent;cursor:pointer;font-size:15.5px;max-width:65ch}
+.para .pn{font-family:var(--f-pix);font-size:12px;color:var(--muted);display:block}
+.para.cur{border-color:var(--gold);background:rgba(242,193,78,.08)}
+.para.done{opacity:.6}
+.para.q0{font-style:italic}
+.para mark{background:none;color:var(--think);text-decoration:underline 2px}
+.tx{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;font-size:14px}
+.seg{padding:5px 8px;border-left:5px solid var(--think);background:rgba(95,212,184,.07)}
+.seg.lezen{border-color:var(--read);background:rgba(179,166,245,.07);color:var(--muted)}
+.seg .k{font-family:var(--f-pix);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+.seg.denken .k{color:var(--think)} .seg.lezen .k{color:var(--read)}
+.hl{border-bottom:2px solid currentColor;padding-bottom:0}
+.hl.ik{color:#8fe6ff}.hl.strat{color:var(--gold)}.hl.hoe{color:#ffb3d9}.hl.doel{color:var(--ok)}.hl.mon{color:var(--warn)}.hl.transfer{color:#d3b6ff}
+.empty{color:var(--muted);font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;margin-right:4px;background:currentColor}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px}
+.inv button{background:var(--slot);border:3px solid var(--edge);box-shadow:inset 2px 2px 0 var(--bevel);padding:6px 8px;font-size:13px;text-align:left;cursor:pointer;line-height:1.25}
+.inv button:hover{background:var(--slot-hi)}
+.typer{display:flex;gap:6px}
+.typer textarea{flex:1;min-width:0;resize:vertical;min-height:58px;background:#121622;color:var(--chalk);border:3px solid var(--edge);padding:6px 8px;font:inherit;font-size:14px}
+.typer button{background:var(--slot);border:3px solid var(--edge);box-shadow:inset 2px 2px 0 var(--bevel);font-family:var(--f-pix);padding:0 12px;cursor:pointer}
+.note{font-size:13px;color:var(--muted);margin:0}
+.note.warn{color:var(--warn)}
+/* ---------- modals ---------- */
+.modal{position:fixed;inset:0;background:rgba(8,10,16,.72);display:grid;place-items:center;z-index:20;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.card{background:var(--panel);width:min(760px,100%);max-height:100%;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card h2{font-family:var(--f-pix);font-size:26px;margin:0;text-wrap:balance}
+.card p{margin:0;max-width:65ch}
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.lv{background:var(--slot);border:3px solid var(--edge);box-shadow:inset 3px 3px 0 var(--bevel),inset -3px -3px 0 rgba(0,0,0,.4);padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.lv:hover{background:var(--slot-hi)}
+.lv .t{font-family:var(--f-pix);font-size:17px;font-weight:700}
+.lv .s{font-size:13px;color:var(--muted)}
+.stars{font-family:var(--f-pix);color:var(--gold);letter-spacing:2px}
+.stars .off{color:#4a5270}
+.rub{display:grid;grid-template-columns:minmax(0,1fr) 120px 28px;gap:6px 10px;align-items:center;font-size:14px}
+.rub .rb{height:12px;background:#0c0f17;border:2px solid var(--edge)} .rub .rb>i{display:block;height:100%;background:var(--ok)}
+.rub .q{grid-column:1/-1;font-size:13px;color:var(--muted);margin:-2px 0 4px;font-style:italic}
+.rub .sc{font-family:var(--f-pix);text-align:right;font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.btn{background:var(--slot);border:3px solid var(--edge);box-shadow:inset 3px 3px 0 var(--bevel),inset -3px -3px 0 rgba(0,0,0,.4);padding:9px 14px;font-family:var(--f-pix);font-size:15px;cursor:pointer}
+.btn:hover{background:var(--slot-hi)} .btn.pri{background:#2f4a33} .btn.pri:hover{background:#3b5c40}
+.btn:disabled{opacity:.5;cursor:wait}
+.tip{border:3px solid var(--edge);background:#192030;padding:10px 12px;font-size:14px}
+.tip b{font-family:var(--f-pix);color:var(--gold);font-weight:600}
+.coach{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.coach ul{margin:0;padding-left:20px}
+.coach .bet{color:var(--ok)} .coach .org{color:var(--warn);text-decoration:line-through}
+.kpis{display:flex;flex-wrap:wrap;gap:8px}
+.kpi{background:#192030;border:3px solid var(--edge);padding:6px 10px;font-size:13px;color:var(--muted)}
+.kpi b{display:block;font-family:var(--f-pix);font-size:20px;color:var(--chalk);font-variant-numeric:tabular-nums}
+.example{font-size:14px;display:flex;flex-direction:column;gap:6px}
+@media (max-width:860px){
+  body{overflow:auto}
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:56vh auto;height:auto;min-height:100%}
+  .book{overflow:visible}
+  .app{grid-template-rows:62vh auto}
+  .hud{left:8px;top:8px;right:8px;gap:6px}
+  .hudbox{padding:5px 7px}
+  .hudbox h1{font-size:13px}
+  .meter{font-size:11px;margin-top:2px;gap:5px}
+  .bar{width:64px;height:8px}
+  .timer{font-size:15px}
+  .hudbox .sub{font-size:11px}
+  .toasts{top:auto;bottom:76px;right:8px}
+  .toast{font-size:12px;padding:3px 7px}
+  .hotbar{bottom:8px;gap:3px;padding:3px}
+  .slot{min-width:0;width:48px;height:50px;font-size:11px;padding:3px 2px}
+  .slot.mic{min-width:0;width:60px}
+  .slot kbd{display:none}
+  .slot .glyph{font-size:16px}
+  .partial{bottom:68px;font-size:13px;max-width:92%}
+  .bub .say{font-size:11px;max-width:130px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app">
+  <section class="world frame" id="world" aria-label="De klas">
+    <canvas id="cv" aria-label="3D-klaslokaal met leerlingen en een bord"></canvas>
+    <div class="bubbles" id="bubbles"></div>
+    <div class="hud">
+      <div class="hudbox frame">
+        <h1 id="hudTitle">Les 1 · Voorspellen</h1>
+        <div class="meter"><span>Begrip klas</span><span class="bar" id="classBar"><i></i></span></div>
+        <div class="meter"><span>Modelpunten</span><span class="bar xp" id="xpBar"><i style="width:0"></i></span><span id="xpNum">0</span></div>
+      </div>
+      <div class="hudbox frame"><div class="timer" id="timer">0:00</div><div class="sub" id="micState">Microfoon uit</div></div>
+    </div>
+    <div class="toasts" id="toasts"></div>
+    <div class="partial" id="partial" hidden></div>
+    <div class="hotbar" role="toolbar" aria-label="Acties">
+      <button class="slot" id="bLevels" title="Kies een les"><span class="glyph">▦</span>Lessen<kbd>L</kbd></button>
+      <button class="slot" id="bPrev" title="Vorige alinea"><span class="glyph">◀</span>Terug<kbd>←</kbd></button>
+      <button class="slot mic" id="bMic" title="Start of stop de microfoon"><span class="glyph">●</span><span id="micLbl">Praat</span><kbd>M</kbd></button>
+      <button class="slot" id="bNext" title="Volgende alinea"><span class="glyph">▶</span>Verder<kbd>→</kbd></button>
+      <button class="slot" id="bDemo" title="Bekijk hoe een expert modelt"><span class="glyph">◆</span>Demo<kbd>D</kbd></button>
+      <button class="slot go" id="bDone" title="Rond af en krijg feedback"><span class="glyph">★</span>Klaar<kbd>K</kbd></button>
+    </div>
+  </section>
+
+  <aside class="book frame" aria-label="Lesboek">
+    <div class="sec mission">
+      <h2>Missie</h2>
+      <p id="mission"></p>
+      <ul class="crit" id="crit"></ul>
+    </div>
+    <div class="sec text">
+      <h2>Tekst op het bord</h2>
+      <h3 id="txTitle"></h3>
+      <div id="paras"></div>
+    </div>
+    <div class="sec">
+      <h2>Wat jij zei</h2>
+      <div class="legend"><span style="color:#8fe6ff">ik-taal</span><span style="color:var(--gold)">strategie</span><span style="color:#ffb3d9">hoe/bewijs</span><span style="color:var(--ok)">lesdoel</span><span style="color:var(--warn)">vastlopen</span><span style="color:#d3b6ff">waarom/transfer</span></div>
+      <div class="tx" id="tx"><p class="empty">Nog niets gezegd. Druk op <b>Praat</b> (of M), lees de tekst hardop voor en zeg tussendoor wat er in je hoofd gebeurt. Paarse blokken zijn voorlezen, groene blokken zijn hardop denken.</p></div>
+      <div class="typer">
+        <textarea id="typeIn" placeholder="Geen microfoon? Typ hier wat je hardop zou zeggen en druk op Enter."></textarea>
+        <button id="bType" title="Voeg toe">OK</button>
+      </div>
+      <p class="note" id="micNote"></p>
+    </div>
+    <div class="sec">
+      <h2>Zinsstarters</h2>
+      <p class="note">Klik om een starter in het typvak te zetten. Hardop gebruiken mag natuurlijk ook.</p>
+      <div class="inv" id="inv"></div>
+    </div>
+  </aside>
+</div>
+
+<div class="modal" id="mStart">
+  <div class="card frame">
+    <h2>Blokklas</h2>
+    <p>Jij staat voor een klas van acht leerlingen. Je leest een korte tekst voor en <b>denkt hardop</b>: je laat horen wat een goede lezer in zijn hoofd doet. De leerlingen reageren op wat je zegt. Alleen voorlezen? Dan haken ze af. Laat je zien hoe je een strategie gebruikt? Dan gaat er een lampje branden.</p>
+    <p class="note">Werkt zo: kies een les → druk op <b>Praat</b> → lees per alinea voor en denk hardop → <b>Verder</b> naar de volgende alinea → <b>Klaar</b> voor feedback. Geen microfoon beschikbaar? Typ in het lesboek wat je zou zeggen. Eerst zien hoe het moet? Kies <b>Demo</b>.</p>
+    <div class="levels" id="lvList"></div>
+  </div>
+</div>
+
+<div class="modal" id="mRes" hidden>
+  <div class="card frame" id="resCard"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+/* =====================================================================
+   INHOUD: lessen, teksten, voorbeeldmodellen
+   ===================================================================== */
+const STUDENTS = ["Sam","Liv","Jayden","Lotte","Mo","Fenna","Daan","Aya"];
+
+const LEVELS = [
+{ id:"voorspellen", naam:"Voorspellen", groep:"groep 5–6",
+  missie:"Modeleer <b>voorspellen</b>: voorspel vóór het lezen op basis van de titel, voorspel tijdens het lezen wat er komt, en check hardop of je voorspelling klopte.",
+  doelLabel:"Voorspellen en checken",
+  doelRe:/(ik (denk|verwacht|voorspel|vermoed|gok) dat|zou (het )?kunnen|misschien|voorspel\w*|de titel|klopt|klopte|had ik (goed|gelijk)|anders dan ik dacht|niet verwacht|toch niet|ik ben benieuwd|mijn voorspelling)/g,
+  titel:"Waarom de ijsvogel blauw lijkt",
+  alineas:[
+   "De ijsvogel is een klein vogeltje dat langs beken en rivieren woont. Wie hem ziet vliegen, ziet een flits van fel blauw. Toch zit er in zijn veren helemaal geen blauwe kleurstof.",
+   "Hoe kan dat? De veren hebben piepkleine luchtbelletjes. Als het zonlicht daarop valt, wordt vooral het blauwe licht teruggekaatst. Onze ogen zien dus blauw, terwijl de veer eigenlijk bruinig grijs is.",
+   "Je kunt dat zelf zien als je een losse veer vindt. Houd je hem tegen het licht, dan is hij dof. Kijk je er van boven op, dan glanst hij weer blauw.",
+   "Ook sommige blauwe vlinders gebruiken dit trucje. Wetenschappers proberen het na te maken, zodat verf nooit meer verbleekt."],
+  vragen:[
+   {para:1, st:0, tekst:"Hè? Hoe kan hij blauw zijn als er geen blauw in zit?", re:/(licht|voorspel|ik denk|misschien|vraag ik me af|ik vraag me af)/},
+   {para:2, st:3, tekst:"Wat is ‘teruggekaatst’?", re:/(terug ?(ge)?kaats|spiegel|stuiter|terug ?gestuurd|weerkaats|terug naar)/}],
+  starters:["Ik kijk eerst naar de titel. Ik denk dat het gaat over … omdat …","Ik voorspel dat er nu … komt, want …","Mijn voorspelling klopte, want hier staat …","Dat is anders dan ik dacht. Ik pas mijn voorspelling aan."],
+  expert:[
+   [0,"Voordat ik ga lezen, kijk ik eerst naar de titel. Ik ga voorspellen waar de tekst over gaat. Er staat lijkt. Ik denk dat de ijsvogel misschien niet echt blauw is, omdat de schrijver anders is had geschreven."],
+   [1,"Kijk, hier staat dat er geen blauwe kleurstof in zijn veren zit. Mijn voorspelling klopt dus! Nu vraag ik me af hoe hij dan toch blauw lijkt. Ik voorspel dat het iets met licht te maken heeft, want de zon schijnt op hem als hij vliegt."],
+   [2,"Ja, het gaat inderdaad over licht. Mijn voorspelling had ik goed. Maar wacht, dit snap ik nog niet helemaal. Ik lees die zin nog een keer. Teruggekaatst, dus het licht stuitert terug naar mijn ogen. Nu snap ik het."],
+   [3,"Ik denk dat er nu een proefje komt, want er staat je kunt dat zelf zien. Dat klopte."],
+   [4,"Ik had niet verwacht dat het over verf zou gaan, dat is anders dan ik dacht. Voorspellen helpt mij, omdat ik dan blijf nadenken en steeds check of ik gelijk had. Dat kun jij ook doen: kijk voor het lezen naar de titel en zeg tegen jezelf: ik denk dat het gaat over."]]
+},
+{ id:"woorden", naam:"Woordbetekenis afleiden", groep:"groep 6–7",
+  missie:"Modeleer hoe je de <b>betekenis van een onbekend woord</b> afleidt uit de context: stoppen bij het woord, de zin ervoor en erna gebruiken, een betekenis invullen en checken of die past.",
+  doelLabel:"Betekenis uit context",
+  doelRe:/(dat woord|dit woord|het woord|ken ik niet|weet ik niet wat|betekent|betekenis|zin ervoor|zin erna|zin daarvoor|zin daarna|volgende zin|ik lees (even )?(verder|door)|lijkt op|in het woord|past (het|dat)|klopt het)/g,
+  titel:"Een kraan op de maan",
+  alineas:[
+   "Op de maan is water schaars. Er stromen geen rivieren en er vallen geen regendruppels. Elke druppel die astronauten nodig hebben, moet nu nog met een raket worden meegenomen.",
+   "Toch is er hoop. In diepe kraters bij de zuidpool van de maan schijnt nooit de zon. Daar is het zo koud dat er ijs ligt dat al heel lang niet is gesmolten.",
+   "Ingenieurs bedenken machines die dat ijs kunnen ontginnen. Ze willen het uit de grond halen, smelten en schoonmaken.",
+   "Lukt dat, dan kunnen astronauten langer blijven. Van het water kun je zelfs brandstof maken, want water bestaat uit waterstof en zuurstof."],
+  vragen:[
+   {para:1, st:4, tekst:"Wat betekent ‘schaars’?", re:/(schaars|weinig|bijna niet|niet veel)/},
+   {para:3, st:5, tekst:"Ontginnen? Wat is dat?", re:/(ontgin|uit de grond|zin erna|volgende zin)/}],
+  starters:["Dat woord ken ik niet. Ik stop even.","Ik lees de zin ervoor en de zin erna.","Dus ik denk dat … betekent …","Als ik … invul in de zin, past het. Ja, dat klopt."],
+  expert:[
+   [0,"De titel is een kraan op de maan. Vandaag let ik op moeilijke woorden. Als ik een woord niet ken, stop ik niet meteen met lezen. Ik gebruik de zinnen eromheen om de betekenis te raden."],
+   [1,"Schaars. Hmm, dat woord ken ik niet. Ik lees de zin erna: er stromen geen rivieren en er vallen geen regendruppels. En elke druppel moet worden meegenomen. Dus ik denk dat schaars betekent dat er heel weinig van is. Als ik weinig invul in de zin, past het. Ja, dat klopt."],
+   [2,"Kraters ken ik wel, dat zijn grote kuilen. Hier staat dat het daar zo koud is dat er ijs ligt."],
+   [3,"Ontginnen, dat woord ken ik niet. Ik lees verder, want soms legt de schrijver het zelf uit. De volgende zin zegt: uit de grond halen. Dus ontginnen betekent uit de grond halen. Mooi, de tekst helpt mij."],
+   [4,"Wat doe ik dus bij een moeilijk woord? Eerst lees ik de zin ervoor en de zin erna. Dan bedenk ik wat het zou kunnen betekenen en ik check of het past. Dat helpt mij omdat ik dan door kan lezen. Dat kun jij ook doen als je straks zelf leest."]]
+},
+{ id:"verwijzen", naam:"Verwijswoorden", groep:"groep 5–7",
+  missie:"Modeleer hoe je <b>verwijswoorden</b> (hij, zij, die, dat, daar) koppelt aan de persoon of het ding waar ze naar verwijzen, door hardop terug te kijken in de tekst.",
+  doelLabel:"Verwijswoorden koppelen",
+  doelRe:/(wie is (hij|zij|ze|die|haar|hem)|wat is (die|dat|het|daar|deze)|naar wie|naar wat|verwijs\w*|ik kijk (even )?terug|terug in de tekst|wordt .{0,20}bedoeld|bedoelen ze|\b(hij|zij|ze|die|dat|daar|hem|haar|daaronder|eruit),? (dat|die) is|met (hij|zij|ze|die|dat|daar|hem|haar) (bedoel|wordt|is)|betekent dus onder)/g,
+  titel:"De sleutel van opa",
+  alineas:[
+   "Noor en haar opa liepen naar de schuur. Hij zocht al de hele ochtend naar een oude sleutel. Die had hij jaren geleden ergens verstopt.",
+   "In de schuur stond een kist vol rommel. Noor tilde het deksel op. Daaronder lag een doek met een rood touwtje eromheen.",
+   "‘Is dat hem?’ vroeg ze. Opa schudde zijn hoofd. ‘Nee, die is van je oma geweest. Daar bewaarde zij haar kralen in.’",
+   "Toen zag Noor iets glimmen tussen de planken van de vloer. Ze bukte en trok het eruit. Opa begon te lachen."],
+  vragen:[
+   {para:1, st:6, tekst:"Wie had de sleutel verstopt?", re:/(opa|hij,? dat is|terug)/},
+   {para:3, st:7, tekst:"Wie is ‘zij’?", re:/(oma|zij,? dat is|zij is)/},
+   {para:4, st:2, tekst:"Wat trok ze eruit?", re:/(sleutel|ik denk|vermoed)/}],
+  starters:["Wie is ‘hij’? Ik kijk terug in de tekst.","Er staan twee mensen in de tekst: …","Dus ‘die’, dat is …","‘Daar’ verwijst naar … want in de zin ervoor staat …"],
+  expert:[
+   [0,"Het verhaal heet de sleutel van opa. Vandaag let ik op kleine woordjes zoals hij, zij, die en daar. Die woorden verwijzen naar iets wat eerder in de tekst staat. Als ik niet weet naar wie ze verwijzen, raak ik de draad kwijt."],
+   [1,"Hij zocht al de hele ochtend. Wie is hij? Ik kijk terug in de tekst. Er staan twee mensen: Noor en opa. Noor is een meisje, dus hij, dat is opa. En die had hij verstopt. Die, dat is de sleutel, want de zin ervoor ging over de sleutel."],
+   [2,"Daaronder lag een doek. Waaronder? Ik kijk terug: Noor tilde het deksel op. Daaronder betekent dus onder het deksel, in de kist."],
+   [3,"Is dat hem? Wat is dat? Ik denk dat dat het doek met het touwtje is. En hem, dat is de sleutel. Daar bewaarde zij haar kralen in. Wie is zij? Wacht, ik lees het nog een keer. Opa zegt die is van je oma geweest. Dus zij, dat is oma."],
+   [4,"Ze trok het eruit. Wat is het? Er staat iets glimmen. Ik denk dat het de sleutel is, omdat opa begint te lachen. Ik kijk bij elk verwijswoord even terug naar wie of wat het verwijst. Dat helpt mij om het verhaal te snappen. Probeer jij dat ook als je straks leest."]]
+},
+{ id:"monitoren", naam:"Vragen stellen & monitoren", groep:"groep 6–8",
+  missie:"Modeleer <b>bewaken of je het nog snapt</b>: merk hardop dat je vastloopt, stel jezelf een vraag, kies een herstelactie (terug lezen, verder lezen) en check of het nu duidelijk is.",
+  doelLabel:"Vragen stellen en bewaken",
+  doelRe:/(ik vraag me af|vraag ik me af|waarom|hoe kan|hoe komt|wat bedoelen ze|wat betekent dat|snap ik (het )?(nog )?niet|klopt dat|ik stop even|ik lees .{0,15}(nog een keer|opnieuw|terug)|nu snap ik|nu begrijp ik|snap ik het nu|mijn vraag)/g,
+  titel:"Slapen met één oog open",
+  alineas:[
+   "Dolfijnen moeten bewust ademhalen. Ze kunnen dus nooit helemaal in slaap vallen, want dan zouden ze stikken.",
+   "Daarom slaapt steeds maar de helft van hun hersenen. De andere helft blijft wakker en let op gevaar en op de ademhaling.",
+   "Na een tijdje wisselen de twee helften. Eén oog blijft daarbij steeds open. Zo rusten ze toch, zonder ooit helemaal weg te zijn.",
+   "Ook sommige vogels doen dit, bijvoorbeeld als ze in een groep slapen. De vogels aan de rand houden één oog open."],
+  vragen:[
+   {para:1, st:1, tekst:"Ik adem toch ook als ik slaap?", re:/(bewust|nadenken|zelf aan|vanzelf|ik vraag me af|snap ik|lees)/},
+   {para:2, st:0, tekst:"Hoe kun je half slapen?", re:/(helft|half|wakker|ik vraag me af|vraag ik me af)/}],
+  starters:["Wacht, ik stop even. Dit snap ik niet.","Ik vraag me af …","Ik lees het nog een keer.","Nu snap ik het: …","Ik lees verder, misschien komt het antwoord nog."],
+  expert:[
+   [0,"De titel is slapen met één oog open. Ik vraag me nu al af: hoe kan dat? Vandaag let ik goed op of ik het nog snap. Als iets niet klopt in mijn hoofd, stop ik even."],
+   [1,"Wacht, ik stop even. Dolfijnen moeten bewust ademhalen. Dat snap ik niet. Ik adem toch ook zonder nadenken? Ik lees het nog een keer. Bewust betekent dat ze er zelf aan moeten denken. Nu snap ik waarom ze niet helemaal kunnen slapen: dan vergeten ze te ademen."],
+   [2,"Hoe kan de helft van je hersenen slapen? Dat vind ik raar. Ik vraag me af of ze dan ook half kunnen zien. Ik lees verder, misschien staat het antwoord in de volgende alinea."],
+   [3,"Ja, hier staat het: één oog blijft open. Mijn vraag wordt beantwoord. Ik check: snap ik het nu? Ja, de ene helft rust en de andere helft let op."],
+   [4,"Waarom zouden alleen de vogels aan de rand een oog openhouden? Ik denk omdat zij het gevaar het eerst zien. Ik stel mezelf steeds vragen en ik stop als ik iets niet snap. Dat helpt mij omdat ik dan merk wanneer ik de draad kwijtraak. Dat kunnen jullie ook doen."]]
+},
+{ id:"samenvatten", naam:"Samenvatten", groep:"groep 7–8",
+  missie:"Modeleer <b>samenvatten</b>: zoek per alinea hardop wat de hoofdzaak is, laat zien welke details je weglaat en waarom, en maak er aan het eind één korte samenvatting van.",
+  doelLabel:"Hoofdzaak en bijzaak",
+  doelRe:/(belangrijkst\w*|hoofdzaak|kern|samengevat|samenvat\w*|in het kort|het gaat over|deze alinea gaat over|dit stukje gaat over|dat onthoud ik|is (niet )?belangrijk|laat ik weg|weglaten|in (een|1) zin|detail|bijzaak|weetje)/g,
+  titel:"De eerste fiets",
+  alineas:[
+   "De eerste fiets had geen trappers. Karl Drais bouwde hem in 1817 van hout. Je duwde jezelf vooruit met je voeten, net als op een loopfiets.",
+   "Later kwamen er trappers aan het voorwiel. Om sneller te gaan, maakten bouwers dat wiel steeds groter. Sommige voorwielen waren bijna anderhalve meter hoog. Vallen was gevaarlijk.",
+   "Rond 1885 kwam de veilige fiets. Die had twee bijna even grote wielen en een ketting naar het achterwiel. Zo ziet een fiets er nog steeds uit.",
+   "Nu zijn er in Nederland meer fietsen dan inwoners."],
+  vragen:[
+   {para:2, st:6, tekst:"Moet ik die anderhalve meter onthouden?", re:/(belangrijk|hoofdzaak|kern|weglaten|laat ik weg|detail|weetje|niet nodig)/},
+   {para:4, st:0, tekst:"Wat moet ik nou opschrijven?", re:/(samen|in (een|1) zin|kern|belangrijkst)/}],
+  starters:["Wat is hier het belangrijkste?","Dat is een detail, dat laat ik weg.","Deze alinea gaat over …","In één zin: …","Samengevat: …"],
+  expert:[
+   [0,"De titel is de eerste fiets. Vandaag ga ik samenvatten. Na elke alinea vraag ik mezelf: wat is het belangrijkste? Dat zeg ik dan in één zin."],
+   [1,"Wat is hier het belangrijkste? De eerste fiets had geen trappers en was van hout. Dat Karl Drais hem bouwde is een detail, dat laat ik weg. In één zin: de eerste fiets had geen trappers."],
+   [2,"Anderhalve meter, dat is een leuk weetje, maar is dat belangrijk? Wacht, ik lees de alinea nog een keer. Nee, ik denk dat de kern is: er kwamen trappers en het voorwiel werd heel groot, maar dat was gevaarlijk."],
+   [3,"Deze alinea gaat over de veilige fiets met twee even grote wielen en een ketting. Dat onthoud ik, want zo ziet een fiets er nu nog uit."],
+   [4,"Nu maak ik er één samenvatting van. Samengevat: de fiets begon zonder trappers, kreeg toen een gevaarlijk groot voorwiel en werd daarna veilig met een ketting. Samenvatten helpt mij, omdat ik dan alleen de hoofdzaak hoef te onthouden. Dat kun jij ook doen: zeg na elke alinea in één zin wat het belangrijkste was."]]
+}];
+
+/* Algemene kenmerken van goed modelen (hardop denken in ik-vorm, wat/hoe/waarom, vastlopen laten zien) */
+const CATS = {
+  ik:      {label:"Ik-taal", re:/\b(ik|mijn|mezelf|mij)\b/g},
+  strat:   {label:"Strategie benoemd", re:/\b(strategie|ik ga (nu )?(eerst )?(voorspellen|samenvatten|vragen stellen|terugkijken|teruglezen|terug lezen|doorlezen|verder lezen|controleren|checken)|voorspel(len|ling)|samenvat(ten|ting)|verwijswoord(en|je|jes)?|kleine woordjes|moeilijke woorden|onbekend woord|context|hoofdzaak|let ik op|ik let (goed )?op|stel (ik )?mezelf|mezelf (een )?vra\w+|vandaag ga ik|vandaag let ik)\b/g},
+  hoe:     {label:"Hoe: stappen & tekstbewijs", re:/\b(omdat|want|hier staat|daar staat|er staat|in de (tekst|zin|titel|alinea)|de titel|de zin (ervoor|erna|daarvoor|daarna)|eerst|daarna|dat zie ik aan|dat lees ik|uit de tekst|dus)\b/g},
+  doel:    {label:"Lesdoel", re:null},
+  mon:     {label:"Vastlopen & herstellen", re:/(ken ik niet|weet ik niet( wat)?|snap ik (het )?(nog )?niet|begrijp ik (het )?(nog )?niet|snap het niet|begrijp het niet|niet helemaal|klopt (dat|dit|niet)|\bwacht\b|ik stop (even|hier)|even stoppen|ik lees (het |dit |dat |die zin |deze zin )?(nog een keer|nog eens|opnieuw|terug)|lees ik (het )?(nog een keer|nog eens|opnieuw|terug)|draad kwijt|\bhuh\b|\bhe\?|vreemd|raar|ik twijfel|weet ik nog niet|nu snap ik|nu begrijp ik)/g},
+  transfer:{label:"Waarom & wanneer", re:/(helpt (mij|me|je|jou|ons)|dat kun (jij|je|jullie) ook|kunnen jullie ook|kun jij ook|als (jij|je|jullie) (straks|zelf|een)|zodat ik|daardoor (snap|begrijp|weet)|handig|probeer (jij|jullie) dat ook|dat doe ik (altijd|omdat|zodat|als))/g}
+};
+const CAT_KEYS = ["ik","strat","hoe","doel","mon","transfer"];
+const CAT_TIPS = {
+  ik:"Spreek in de ik-vorm over je eigen denken: ‘Ik denk…’, ‘Ik merk dat…’, ‘Ik vraag me af…’. Zeg niet ‘Jullie moeten…’: bij modelen laat je je eigen hoofd horen.",
+  strat:"Zeg vooraf welke strategie je gaat laten zien: ‘Ik ga nu … Kijk en luister hoe ik dat doe.’ Leerlingen moeten weten wát ze zien.",
+  hoe:"Maak de stappen hoorbaar en wijs naar de tekst: ‘Hier staat…, dus…’, ‘Eerst…, daarna…’. Een conclusie zonder bewijs is geen model.",
+  doel:"Je lesdoel kwam te weinig terug. Gebruik de zinsstarters van deze les op minstens twee plekken in de tekst.",
+  mon:"Laat ook zien dat je vastloopt en hoe je dat oplost: ‘Wacht, dit snap ik niet. Ik lees het nog een keer.’ Juist dat moment leren leerlingen van je af.",
+  transfer:"Sluit af met waarom het helpt en wanneer leerlingen het zelf doen: ‘Dit helpt mij omdat… Dat kun jij ook doen als…’"
+};
+
+/* =====================================================================
+   ANALYSE
+   ===================================================================== */
+const norm = s => Array.from(String(s)).map(c => c.normalize("NFD")[0]).join("").toLowerCase().replace(/[‘’`´]/g,"'");
+const toks = s => norm(s).match(/[a-z0-9]+/g) || [];
+function catRe(k, lvl){ return k === "doel" ? lvl.doelRe : CATS[k].re; }
+function countCat(k, text, lvl){ const re = catRe(k,lvl); re.lastIndex = 0; const m = norm(text).match(re); return m ? m.length : 0; }
+function splitSentences(t){
+  return (String(t).replace(/\s+/g," ").trim().match(/[^.!?]+[.!?]*["'’”]?/g) || []).map(s => s.trim()).filter(s => s.length > 1);
+}
+function paraText(lvl, p){ return p === 0 ? lvl.titel : lvl.alineas[p-1]; }
+const MARK_RE = /\bik\b|\bmijn\b|\bmij\b|\bwie is\b|\bwat is\b|\bhier staat\b|\ber staat\b|\bdus\b.{0,30}\b(is|betekent)\b|\b(snap|begrijp|vraag|denk|weet)\b/;
+function classify(sentence, lvl, p){
+  const tk = toks(sentence); if (!tk.length) return "denken";
+  const src = toks(paraText(lvl,p) + " " + (p>0 ? paraText(lvl,p-1) : "")).join(" ");
+  const joined = tk.join(" ");
+  if (tk.length >= 2 && (" " + src + " ").includes(" " + joined + " ")) return "lezen";   // letterlijk stuk tekst
+  if (tk.length < 4 || MARK_RE.test(norm(sentence)) || ["strat","doel","mon","transfer"].some(k => countCat(k, sentence, lvl))) return "denken";
+  const bi = new Set(); const st = src.split(" "); for (let i = 0; i < st.length-1; i++) bi.add(st[i]+" "+st[i+1]);
+  let hit = 0; for (let i = 0; i < tk.length-1; i++) if (bi.has(tk[i]+" "+tk[i+1])) hit++;
+  return hit / (tk.length-1) >= 0.6 ? "lezen" : "denken";
+}
+function sentenceAround(text, idx){
+  const s = text.lastIndexOf(".", idx), e = text.indexOf(".", idx);
+  return text.slice(s+1, e < 0 ? text.length : e+1).trim();
+}
+function analyze(segs, lvl, qs){
+  const think = segs.filter(s => s.kind === "denken");
+  const thinkText = think.map(s => s.text).join(" ");
+  const words = k => segs.filter(s => s.kind === k).reduce((a,s) => a + toks(s.text).length, 0);
+  const wD = words("denken"), wL = words("lezen");
+  const res = {cats:{}, wD, wL};
+  for (const k of CAT_KEYS){
+    let n = 0, quote = "";
+    for (const s of think){
+      const re = catRe(k,lvl); re.lastIndex = 0; const ns = norm(s.text); const m = re.exec(ns);
+      if (m){ n += countCat(k, s.text, lvl); if (!quote) quote = sentenceAround(s.text, m.index) || s.text; }
+    }
+    const thresholds = k === "ik" ? [2,5,9] : k === "hoe" ? [1,3,5] : k === "doel" ? [1,3,5] : [1,2,3];
+    const score = n >= thresholds[2] ? 3 : n >= thresholds[1] ? 2 : n >= thresholds[0] ? 1 : 0;
+    res.cats[k] = {n, score, quote};
+  }
+  const parasThought = new Set(think.filter(s => toks(s.text).length >= 4).map(s => s.para));
+  res.spread = parasThought.size;
+  res.paraCount = lvl.alineas.length + 1;
+  res.ratio = (wD + wL) ? wD / (wD + wL) : 0;
+  res.readAny = wL > 0;
+  const qTotal = lvl.vragen.length, qDone = lvl.vragen.filter((q,i) => qs[i] && qs[i].state === "done").length;
+  res.q = {qTotal, qDone};
+  // punten: 6 criteria x 3 = 18, spreiding 3, vragen 3 => 24
+  let pts = CAT_KEYS.reduce((a,k) => a + res.cats[k].score, 0);
+  const spreadPts = Math.min(3, Math.round(3 * res.spread / res.paraCount));
+  const qPts = qTotal ? Math.round(3 * qDone / qTotal) : 3;
+  pts += spreadPts + qPts;
+  res.spreadPts = spreadPts; res.qPts = qPts;
+  res.pct = Math.round(100 * pts / 24);
+  if (wD < 25) res.pct = Math.min(res.pct, 25);
+  res.stars = res.pct >= 80 ? 3 : res.pct >= 55 ? 2 : (res.pct >= 25 && res.cats.doel.score >= 1) ? 1 : 0;
+  // tips
+  const weak = CAT_KEYS.slice().sort((a,b) => res.cats[a].score - res.cats[b].score);
+  res.tips = [];
+  if (wD < 25) res.tips.push(["Te weinig hardop gedacht","Je zei nauwelijks iets over je eigen denken. Lees een zin, stop, en zeg wat er in je hoofd gebeurt."]);
+  else if (res.ratio < 0.3) res.tips.push(["Vooral voorgelezen","Maar "+Math.round(res.ratio*100)+"% van je woorden was hardop denken. Leerlingen zien je strategie pas als je stopt en je gedachten uitspreekt."]);
+  if (!res.readAny) res.tips.push(["Tekst niet voorgelezen","Lees de tekst zelf hardop voor op het bord. Modelen gebeurt ín de tekst, niet ernaast."]);
+  for (const k of weak){ if (res.cats[k].score < 2 && res.tips.length < 3) res.tips.push([k === "doel" ? lvl.doelLabel : CATS[k].label, CAT_TIPS[k]]); }
+  if (res.spread < Math.ceil(res.paraCount/2) && res.tips.length < 3) res.tips.push(["Spreiding","Je dacht maar bij "+res.spread+" van de "+res.paraCount+" stukken hardop. Laat de strategie op meerdere plekken in de tekst zien, ook vóór het lezen."]);
+  if (qTotal && qDone < qTotal && res.tips.length < 4) res.tips.push(["Leerlingvragen","Er bleef een vraag liggen. Gebruik zo'n vraag als aanleiding: ‘Dat vraag ik me ook af. Ik denk…’"]);
+  return res;
+}
+
+/* =====================================================================
+   STAAT
+   ===================================================================== */
+const S = { li:0, para:0, segs:[], listening:false, t0:null, elapsed:0, demo:false, demoTimer:null, qs:[], xp:0, readStreak:0, lastTalk:0, partial:"" };
+let progress = {};
+try { progress = JSON.parse(localStorage.getItem("blokklas.v1") || "{}") || {}; } catch(e) { progress = {}; }
+function saveProgress(){ try { localStorage.setItem("blokklas.v1", JSON.stringify(progress)); } catch(e){} }
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lvl = () => LEVELS[S.li];
+
+/* =====================================================================
+   3D-KLAS (Three.js)
+   ===================================================================== */
+const world = $("world"), cv = $("cv");
+const renderer = new THREE.WebGLRenderer({canvas:cv, antialias:false, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xc9e3f2, 22, 40);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+scene.add(new THREE.HemisphereLight(0xfff6e6, 0x5a6378, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(-6, 12, 7); scene.add(sun);
+
+function rng(seed){ let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+function pixTex(w, h, draw, seed){
+  const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d");
+  draw(g, rng(seed || 7), w, h);
+  const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.encoding = THREE.sRGBEncoding;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+const shade = (hex, f) => { const n = parseInt(hex.slice(1),16); const r = Math.min(255, Math.max(0, ((n>>16)&255)*f|0)), gg = Math.min(255, Math.max(0, ((n>>8)&255)*f|0)), b = Math.min(255, Math.max(0, (n&255)*f|0)); return `rgb(${r},${gg},${b})`; };
+function noiseFill(g, r, w, h, base, amp){ for (let y=0;y<h;y++) for (let x=0;x<w;x++){ g.fillStyle = shade(base, 1 + (r()-.5)*amp); g.fillRect(x,y,1,1);} }
+const TEX = {
+  plank: pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#b98a55",.18); g.fillStyle=shade("#b98a55",.7); for(let y=3;y<16;y+=4) g.fillRect(0,y,16,1); g.fillRect(5,0,1,3); g.fillRect(12,4,1,3); g.fillRect(3,8,1,3); g.fillRect(9,12,1,3); },3),
+  stone: pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#7d8291",.3); g.fillStyle=shade("#7d8291",.75); for(let i=0;i<9;i++) g.fillRect(r()*16|0,r()*16|0,2,1); },5),
+  soil:  pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#6d5640",.35); },9),
+  wall:  pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#e8dfc8",.08); g.fillStyle=shade("#e8dfc8",.9); g.fillRect(0,15,16,1); },11),
+  trim:  pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#4f7d74",.15); },13),
+  desk:  pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#d4a467",.12); g.fillStyle=shade("#d4a467",.8); g.fillRect(0,0,16,1); g.fillRect(0,15,16,1); },17),
+  metal: pixTex(8,8,(g,r)=>{ noiseFill(g,r,8,8,"#59607a",.15); },19),
+  shelf: pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#8a6440",.12); const cols=["#c4554d","#3f7cc0","#e3b341","#4f9a5a","#8a5bb5","#e07a3a"]; for(const y0 of [1,9]){ let x=1; while(x<15){ const w=1+(r()*2|0); g.fillStyle=cols[r()*cols.length|0]; g.fillRect(x,y0,w,6); x+=w; } } g.fillStyle="#5e4129"; g.fillRect(0,7,16,2); g.fillRect(0,15,16,1);},23),
+  leaf:  pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#4c9a4a",.4); },29),
+  pot:   pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#b5653d",.15); g.fillStyle="#8d4a2c"; g.fillRect(0,2,16,2); },31),
+  glass: pixTex(16,16,(g,r)=>{ g.fillStyle="#a9d6f5"; g.fillRect(0,0,16,16); g.fillStyle="#d8efff"; g.fillRect(3,3,2,5); g.fillRect(6,3,1,2); g.fillStyle="#5c6f86"; g.fillRect(0,0,16,1); g.fillRect(0,15,16,1); g.fillRect(0,0,1,16); g.fillRect(15,0,1,16); g.fillRect(7,0,2,16); g.fillRect(0,7,16,2); },37),
+  rug:   pixTex(16,16,(g,r)=>{ noiseFill(g,r,16,16,"#8a3f4f",.1); g.fillStyle="#e2b04a"; g.fillRect(1,1,14,1); g.fillRect(1,14,14,1); g.fillRect(1,1,1,14); g.fillRect(14,1,1,14); g.fillStyle="#5b2a36"; g.fillRect(5,5,6,6); },41)
+};
+function mat(tex, rep){ const t = tex.clone(); t.needsUpdate = true; if (rep) t.repeat.set(rep[0], rep[1]); return new THREE.MeshLambertMaterial({map:t}); }
+function box(w,h,d,material,x,y,z,parent){ const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material); m.position.set(x,y,z); (parent||scene).add(m); return m; }
+
+// diorama-eiland
+box(15,0.3,13, [mat(TEX.plank,[15,.3]),mat(TEX.plank,[15,.3]),mat(TEX.plank,[15,13]),mat(TEX.stone,[15,13]),mat(TEX.plank,[15,.3]),mat(TEX.plank,[15,.3])], 0,-0.15,0);
+box(15,1,13, mat(TEX.soil,[15,1]), 0,-0.8,0);
+box(14,1.2,12, mat(TEX.stone,[14,1.2]), 0,-1.9,0);
+box(10,1,8, mat(TEX.stone,[10,1]), 0,-2.9,0.5);
+// muren: achter (bord) en links (ramen); voor en rechts open zodat de camera binnen kijkt
+box(15,4.6,0.5, mat(TEX.wall,[15,4.6]), 0,2.3,-6.25);
+box(15,0.5,0.6, mat(TEX.trim,[15,.5]), 0,0.25,-6.2);
+box(0.5,4.6,13, mat(TEX.wall,[13,4.6]), -7.25,2.3,0);
+box(0.6,0.5,13, mat(TEX.trim,[13,.5]), -7.2,0.25,0);
+for (const z of [-3.2, 0.6, 4.2]) box(0.56,1.8,2.4, mat(TEX.glass,[1,1]), -7.22,2.5,z);
+// bord
+const boardCanvas = document.createElement("canvas"); boardCanvas.width = 1024; boardCanvas.height = 420;
+const boardTex = new THREE.CanvasTexture(boardCanvas); boardTex.encoding = THREE.sRGBEncoding; boardTex.anisotropy = 4;
+box(7.6,3.0,0.2, mat(TEX.desk,[8,3]), 0,2.45,-5.95);
+const boardMesh = new THREE.Mesh(new THREE.PlaneGeometry(7.2,2.6), new THREE.MeshBasicMaterial({map:boardTex}));
+boardMesh.position.set(0,2.45,-5.84); scene.add(boardMesh);
+box(7.6,0.15,0.35, mat(TEX.desk,[8,1]), 0,1.05,-5.8);
+// klok
+const clockTex = pixTex(16,16,(g)=>{ g.fillStyle="#2a2f40"; g.fillRect(0,0,16,16); g.fillStyle="#f6f1e0"; g.fillRect(2,2,12,12); g.fillStyle="#2a2f40"; g.fillRect(7,4,2,5); g.fillRect(8,8,4,1); },43);
+box(0.9,0.9,0.15, new THREE.MeshLambertMaterial({map:clockTex}), 5.2,3.9,-5.95);
+// kast & planten
+box(1,2.6,3, [mat(TEX.shelf,[3,2.6]),mat(TEX.shelf,[3,2.6]),mat(TEX.desk,[1,3]),mat(TEX.desk,[1,3]),mat(TEX.desk,[1,2.6]),mat(TEX.desk,[1,2.6])], -6.4,1.3,-1.4);
+box(1,2.6,2, [mat(TEX.shelf,[2,2.6]),mat(TEX.shelf,[2,2.6]),mat(TEX.desk,[1,2]),mat(TEX.desk,[1,2]),mat(TEX.desk,[1,2.6]),mat(TEX.desk,[1,2.6])], -6.4,1.3,2.6);
+function plant(x,z){ box(0.6,0.5,0.6, mat(TEX.pot), x,0.25,z); box(0.8,0.8,0.8, mat(TEX.leaf), x,0.9,z); box(0.5,0.5,0.5, mat(TEX.leaf), x,1.5,z); }
+plant(6.3,-5.3); plant(-6.4,5.3);
+box(4.4,0.04,3, mat(TEX.rug,[3,2]), 2.8,0.02,-3.9);
+// lessenaar leerkracht
+box(2.4,0.15,1.1, mat(TEX.desk), -3.6,1.05,-4.4);
+box(2.2,0.95,0.1, mat(TEX.desk,[2,1]), -3.6,0.5,-3.9);
+for (const dx of [-1.1,1.1]) box(0.12,1,1, mat(TEX.desk), -3.6+dx,0.5,-4.4);
+box(0.5,0.25,0.35, new THREE.MeshLambertMaterial({color:0xc4554d}), -4.2,1.25,-4.4);
+box(0.45,0.2,0.33, new THREE.MeshLambertMaterial({color:0x3f7cc0}), -4.2,1.47,-4.4);
+box(0.3,0.3,0.3, new THREE.MeshLambertMaterial({color:0xe3b341}), -3,1.27,-4.5);
+
+/* ---------- blokpoppetjes ---------- */
+function faceTex(skin, hair, eye, seed){
+  return pixTex(8,8,(g,r)=>{ g.fillStyle=skin; g.fillRect(0,0,8,8); g.fillStyle=hair; g.fillRect(0,0,8,2); g.fillRect(0,2,1,2); g.fillRect(7,2,1,2);
+    g.fillStyle="#fff"; g.fillRect(1,4,2,1); g.fillRect(5,4,2,1); g.fillStyle=eye; g.fillRect(2,4,1,1); g.fillRect(5,4,1,1);
+    g.fillStyle=shade(skin,.7); g.fillRect(3,6,2,1); }, seed);
+}
+function sideTex(skin, hair, seed, back){ return pixTex(8,8,(g)=>{ g.fillStyle=skin; g.fillRect(0,0,8,8); g.fillStyle=hair; g.fillRect(0,0,8,back?6:3); }, seed); }
+function person(o){
+  const g = new THREE.Group();
+  const L = c => new THREE.MeshLambertMaterial({color:c});
+  const skinM = new THREE.MeshLambertMaterial({color:o.skin});
+  const hairTop = new THREE.MeshLambertMaterial({color:o.hair});
+  const side = new THREE.MeshLambertMaterial({map:sideTex(o.skin,o.hair,o.seed)});
+  const headMats = [side, side, hairTop, skinM, new THREE.MeshLambertMaterial({map:faceTex(o.skin,o.hair,o.eye||"#2a3550",o.seed)}), new THREE.MeshLambertMaterial({map:sideTex(o.skin,o.hair,o.seed+1,true)})];
+  const neck = new THREE.Group(); neck.position.y = 1.4; g.add(neck);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5), headMats); head.position.y = 0.25; neck.add(head);
+  box(0.52,0.72,0.28, L(o.shirt), 0,1.04,0, g);
+  const arm = (x) => { const p = new THREE.Group(); p.position.set(x,1.36,0); g.add(p); box(0.2,0.7,0.22, L(o.shirt), 0,-0.25,0, p); box(0.2,0.12,0.22, skinM, 0,-0.62,0, p); return p; };
+  const leg = (x) => { const p = new THREE.Group(); p.position.set(x,0.7,0); g.add(p); box(0.24,0.7,0.24, L(o.pants), 0,-0.35,0, p); return p; };
+  const parts = { neck, armL:arm(-0.36), armR:arm(0.36), legL:leg(-0.13), legR:leg(0.13) };
+  return {g, ...parts};
+}
+const LOOK = [
+  {skin:"#f1c9a5",hair:"#3b2a1e",shirt:"#d9534f",pants:"#2f3b59"},
+  {skin:"#e7b48f",hair:"#e0b84f",shirt:"#4f9a5a",pants:"#3a3a48"},
+  {skin:"#8d5a3b",hair:"#1d1612",shirt:"#3f7cc0",pants:"#33302d"},
+  {skin:"#f6d5b8",hair:"#b4532a",shirt:"#e3b341",pants:"#41507a"},
+  {skin:"#c48a62",hair:"#20160f",shirt:"#8a5bb5",pants:"#2c2c35"},
+  {skin:"#f1c9a5",hair:"#8a6a43",shirt:"#e07a3a",pants:"#3b4f3f"},
+  {skin:"#a86d48",hair:"#2b1d14",shirt:"#3fa3a0",pants:"#2f3b59"},
+  {skin:"#e9bf97",hair:"#151515",shirt:"#c45588",pants:"#38384a"}
+];
+const students = [];
+const bubLayer = $("bubbles");
+STUDENTS.forEach((name, i) => {
+  const row = i < 4 ? 0 : 1, col = i % 4;
+  const x = -4.2 + col * 2.8 + (row ? 0.2 : 0), z = -0.4 + row * 2.8;
+  // tafel + stoel
+  box(1.2,0.12,0.8, mat(TEX.desk), x,0.95,z-0.75);
+  for (const dx of [-0.5,0.5]) for (const dz of [-0.3,0.3]) box(0.08,0.9,0.08, mat(TEX.metal), x+dx,0.45,z-0.75+dz);
+  box(0.6,0.1,0.6, mat(TEX.trim), x,0.5,z+0.05);
+  box(0.6,0.7,0.1, mat(TEX.trim), x,0.9,z+0.36);
+  for (const dx of [-0.25,0.25]) for (const dz of [-0.2,0.25]) box(0.07,0.5,0.07, mat(TEX.metal), x+dx,0.25,z+0.05+dz);
+  const p = person({...LOOK[i], seed:100+i*7});
+  p.g.scale.setScalar(0.82); p.g.position.set(x, 0.0, z); p.g.rotation.y = Math.PI;
+  p.legL.rotation.x = p.legR.rotation.x = -Math.PI/2;
+  p.g.position.y = 0.55 - 0.7*0.82 + 0.02;
+  scene.add(p.g);
+  const el = document.createElement("div"); el.className = "bub";
+  el.innerHTML = `<div class="say"></div><div class="ic">?</div><div class="nm">${name}</div><div class="mb"><i></i></div>`;
+  bubLayer.appendChild(el);
+  students.push({name, p, el, x, z, begrip:45, aandacht:70, mood:"", moodUntil:0, hand:false, phase:i*1.7, look:0, nod:0});
+});
+const teacher = person({skin:"#e9bf97", hair:"#5a3b26", shirt:"#2f6f8f", pants:"#2b2f3d", seed:900});
+teacher.g.position.set(1.6, 0, -4.4); scene.add(teacher.g);
+let teacherFace = 0; // 0 = klas, PI = bord
+
+/* deeltjes */
+const sparks = [];
+const sparkGeo = new THREE.BoxGeometry(0.09,0.09,0.09);
+function burst(x,y,z,color,n){
+  for (let i=0;i<n;i++){ const m = new THREE.Mesh(sparkGeo, new THREE.MeshBasicMaterial({color})); m.position.set(x+(Math.random()-.5)*.4, y, z+(Math.random()-.5)*.4); m.userData = {vy:1+Math.random()*1.2, vx:(Math.random()-.5)*.6, vz:(Math.random()-.5)*.6, life:1}; scene.add(m); sparks.push(m); }
+}
+
+/* bord tekenen */
+function wrap(g, text, maxW){ const words = text.split(" "); const lines = []; let line = ""; for (const w of words){ const t = line ? line+" "+w : w; if (g.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t; } if (line) lines.push(line); return lines; }
+function drawBoard(){
+  const g = boardCanvas.getContext("2d"), W = boardCanvas.width, H = boardCanvas.height;
+  g.fillStyle = "#2f4a3c"; g.fillRect(0,0,W,H);
+  const r = rng(77); for (let i=0;i<260;i++){ g.fillStyle = `rgba(255,255,255,${0.02+r()*0.035})`; g.fillRect(r()*W, r()*H, 30+r()*90, 3+r()*6); }
+  const L = lvl();
+  g.fillStyle = "#f2c14e"; g.font = "600 30px 'Pixelify Sans', monospace";
+  g.fillText(S.para === 0 ? "Voor het lezen · titel" : `Alinea ${S.para} van ${L.alineas.length}`, 34, 50);
+  g.fillStyle = "#f4f2e6";
+  if (S.para === 0){
+    g.font = "700 64px 'Pixelify Sans', monospace";
+    const lines = wrap(g, L.titel, W-80); lines.forEach((ln,i) => g.fillText(ln, 34, 150 + i*74));
+    g.font = "28px 'Atkinson Hyperlegible', sans-serif"; g.fillStyle = "rgba(244,242,230,.75)";
+    g.fillText("Strategie: " + L.naam, 34, H-40);
+  } else {
+    let size = 40; g.font = `${size}px 'Atkinson Hyperlegible', sans-serif`;
+    let lines = wrap(g, paraText(L,S.para), W-80);
+    while (lines.length * size * 1.3 > H - 100 && size > 24){ size -= 2; g.font = `${size}px 'Atkinson Hyperlegible', sans-serif`; lines = wrap(g, paraText(L,S.para), W-80); }
+    lines.forEach((ln,i) => g.fillText(ln, 34, 110 + i*size*1.3));
+  }
+  boardTex.needsUpdate = true;
+}
+
+/* camera: slepen om rond te kijken */
+const cam = {yaw:0.62, pitch:0.5, r:13.5, target:new THREE.Vector3(-0.2,1.3,-1.2), drag:null};
+cv.addEventListener("pointerdown", e => { cam.drag = {x:e.clientX, y:e.clientY, yaw:cam.yaw, pitch:cam.pitch}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", e => { if (!cam.drag) return; cam.yaw = Math.max(-0.35, Math.min(1.25, cam.drag.yaw - (e.clientX-cam.drag.x)*0.005)); cam.pitch = Math.max(0.18, Math.min(1.0, cam.drag.pitch + (e.clientY-cam.drag.y)*0.004)); });
+cv.addEventListener("pointerup", () => cam.drag = null);
+cv.addEventListener("pointercancel", () => cam.drag = null);
+cv.addEventListener("wheel", e => { e.preventDefault(); cam.r = Math.max(8, Math.min(18, cam.r + e.deltaY*0.01)); }, {passive:false});
+
+function resize(){
+  const w = world.clientWidth, h = world.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); camera.aspect = w/h;
+  camera.fov = w/h < 0.9 ? 64 : w/h < 1.3 ? 52 : 45; cam.target.y = w/h < 0.9 ? 0.6 : 1.3;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(world); resize();
+
+const tmpV = new THREE.Vector3();
+let lastT = performance.now();
+function frame(now){
+  const dt = Math.min(0.05, (now - lastT)/1000); lastT = now; const t = now/1000;
+  const sway = cam.drag ? 0 : Math.sin(t*0.15)*0.03;
+  camera.position.set(cam.target.x + Math.sin(cam.yaw+sway)*Math.cos(cam.pitch)*cam.r, cam.target.y + Math.sin(cam.pitch)*cam.r, cam.target.z + Math.cos(cam.yaw+sway)*Math.cos(cam.pitch)*cam.r);
+  camera.lookAt(cam.target);
+  // leerkracht
+  const talking = now - S.lastTalk < 900;
+  const tf = teacherFace; teacher.g.rotation.y += (tf - teacher.g.rotation.y) * Math.min(1, dt*5);
+  teacher.armR.rotation.x = talking ? -0.6 + Math.sin(t*7)*0.35 : teacher.armR.rotation.x*0.9;
+  teacher.armL.rotation.x = talking && tf === 0 ? -0.3 + Math.sin(t*5+1)*0.25 : teacher.armL.rotation.x*0.9;
+  teacher.neck.rotation.x = talking ? Math.sin(t*9)*0.04 : 0;
+  // leerlingen
+  const W = world.clientWidth, H = world.clientHeight;
+  for (const s of students){
+    if (s.mood && now > s.moodUntil && !s.hand) s.mood = "";
+    const bored = s.aandacht < 35;
+    const wantNod = bored ? 0.55 : s.mood === "aha" ? -0.15 : 0.05;
+    s.nod += (wantNod - s.nod) * Math.min(1, dt*3);
+    // kijken naar leerkracht of rondkijken
+    const dx = teacher.g.position.x - s.x, dz = teacher.g.position.z - s.z;
+    const toTeacher = Math.atan2(dx, -dz) * 0.6;
+    const wantLook = bored ? Math.sin(t*0.4 + s.phase)*0.9 : toTeacher;
+    s.look += (-wantLook - s.look) * Math.min(1, dt*2);
+    s.p.neck.rotation.set(s.nod, s.look, 0);
+    s.p.g.position.y = 0.55 - 0.7*0.82 + 0.02 + (s.mood === "aha" ? Math.abs(Math.sin(t*10))*0.08 : 0);
+    s.p.armR.rotation.x += ((s.hand ? -2.9 + Math.sin(t*6)*0.08 : -0.9) - s.p.armR.rotation.x) * Math.min(1, dt*6);
+    s.p.armL.rotation.x += ((bored ? -1.5 : -0.9) - s.p.armL.rotation.x) * Math.min(1, dt*4);
+    // ballon
+    tmpV.set(s.x, 2.05, s.z); tmpV.project(camera);
+    const vis = tmpV.z < 1;
+    s.el.style.left = ((tmpV.x+1)/2*W) + "px"; s.el.style.top = ((1-tmpV.y)/2*H) + "px"; s.el.style.opacity = vis ? 1 : 0;
+    const cls = s.hand ? "q" : s.mood === "aha" ? "aha" : s.mood === "lost" ? "lost" : bored ? "zz" : "";
+    if (s.el.dataset.c !== cls){ s.el.className = "bub " + cls; s.el.dataset.c = cls; s.el.querySelector(".ic").textContent = cls === "q" ? "?" : cls === "aha" ? "!" : cls === "zz" ? "z" : cls === "lost" ? "?!" : ""; }
+    s.el.querySelector(".mb>i").style.width = s.begrip + "%";
+  }
+  for (let i = sparks.length-1; i >= 0; i--){ const m = sparks[i], u = m.userData; u.life -= dt; m.position.x += u.vx*dt; m.position.z += u.vz*dt; m.position.y += u.vy*dt; m.rotation.y += dt*4; if (u.life <= 0){ scene.remove(m); m.material.dispose(); sparks.splice(i,1); } }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* =====================================================================
+   SPELLOGICA
+   ===================================================================== */
+function classAvg(){ return students.reduce((a,s) => a + s.begrip, 0) / students.length; }
+function updateHud(){
+  $("classBar").firstElementChild.style.width = classAvg() + "%";
+  $("xpBar").firstElementChild.style.width = Math.min(100, S.xp/3) + "%";
+  $("xpNum").textContent = S.xp;
+}
+function toast(html, bad){
+  const el = document.createElement("div"); el.className = "toast" + (bad ? " bad" : ""); el.innerHTML = html;
+  const box = $("toasts"); box.appendChild(el); while (box.children.length > 4) box.firstChild.remove();
+  setTimeout(() => el.remove(), 2600);
+}
+function setMood(s, mood, text, ms){ s.mood = mood; s.moodUntil = performance.now() + (ms || 2500); if (text != null) s.el.querySelector(".say").textContent = text; }
+function pick(n){ return students.slice().sort(() => Math.random() - .5).slice(0, n); }
+function boost(n, amount, aha){
+  pick(n).forEach(s => { s.begrip = Math.min(100, s.begrip + amount); s.aandacht = Math.min(100, s.aandacht + amount*1.5);
+    if (aha && !s.hand && Math.random() < .7){ setMood(s, "aha", ["Oh, zo!","Aha!","Snap ik!","Slim!","Ik zie het!"][Math.random()*5|0]); burst(s.x, 2.1, s.z, 0xf2c14e, 6); } });
+}
+
+function setupQuestions(){ S.qs = lvl().vragen.map(() => ({state:"wait"})); }
+function triggerQuestions(){
+  const L = lvl();
+  L.vragen.forEach((q,i) => {
+    const st = S.qs[i];
+    if (st.state === "wait" && q.para === S.para){
+      st.state = "pending";
+      st.timer = setTimeout(() => {
+        if (st.state !== "pending" || S.para !== q.para) { if (st.state === "pending") st.state = "wait"; return; }
+        st.state = "open"; const s = students[q.st]; s.hand = true; s.el.querySelector(".say").textContent = q.tekst;
+        toast(`<b>${s.name}</b> steekt een vinger op`);
+      }, S.demo ? 600 : 3500);
+    }
+  });
+}
+function leaveParaQuestions(){
+  lvl().vragen.forEach((q,i) => {
+    const st = S.qs[i];
+    if (st.state === "pending"){ clearTimeout(st.timer); st.state = "wait"; }
+    if (st.state === "open" && q.para !== S.para){
+      st.state = "missed"; const s = students[q.st]; s.hand = false; s.begrip = Math.max(0, s.begrip - 15); s.aandacht -= 20;
+      setMood(s, "lost", "Ik snap het nog steeds niet…", 3500); toast(`<b>${s.name}</b>s vraag bleef liggen`, true);
+    }
+  });
+}
+function resolveQuestions(text){
+  const n = norm(text);
+  lvl().vragen.forEach((q,i) => {
+    const st = S.qs[i];
+    if (st.state === "open" && q.re.test(n)){
+      st.state = "done"; const s = students[q.st]; s.hand = false; s.begrip = Math.min(100, s.begrip + 25);
+      setMood(s, "aha", "Nu snap ik het!", 3000); burst(s.x, 2.1, s.z, 0x9bdc6a, 10); S.xp += 20; toast(`<b>+20</b> vraag van ${s.name} benut`);
+    }
+  });
+}
+
+function addSpeech(text){
+  const L = lvl();
+  for (const sentence of splitSentences(text)){
+    const kind = classify(sentence, L, S.para);
+    S.segs.push({para:S.para, kind, text:sentence, t:Date.now()});
+    S.lastTalk = performance.now();
+    if (kind === "lezen"){
+      teacherFace = Math.PI; S.readStreak++;
+      if (S.readStreak >= 4){ students.forEach(s => s.aandacht = Math.max(0, s.aandacht - 6)); if (S.readStreak === 4) toast("<b>Let op</b> de klas hoort alleen voorlezen. Denk eens hardop.", true); }
+    } else {
+      teacherFace = 0; S.readStreak = 0;
+      let any = false;
+      for (const k of CAT_KEYS){
+        const n = countCat(k, sentence, L);
+        if (n){ any = true; const pts = 10*n; S.xp += pts; toast(`<b>+${pts}</b> ${k === "doel" ? L.doelLabel : CATS[k].label}`); boost(k === "doel" ? 3 : 2, k === "doel" ? 7 : 5, k === "doel" || k === "mon"); }
+      }
+      if (!any) boost(1, 1, false);
+      resolveQuestions(sentence);
+    }
+  }
+  renderTranscript(); renderCrit(); updateHud();
+}
+
+/* =====================================================================
+   UI RENDER
+   ===================================================================== */
+function highlight(text){
+  const L = lvl(), n = norm(text), marks = [];
+  for (const k of CAT_KEYS){ const re = new RegExp(catRe(k,L).source, "g"); let m; while ((m = re.exec(n))){ if (!m[0].length){ re.lastIndex++; continue; } marks.push([m.index, m.index + m[0].length, k]); } }
+  marks.sort((a,b) => a[0]-b[0] || b[1]-a[1]);
+  let out = "", pos = 0;
+  for (const [s,e,k] of marks){ if (s < pos) continue; out += esc(text.slice(pos,s)) + `<span class="hl ${k}">${esc(text.slice(s,e))}</span>`; pos = e; }
+  return out + esc(text.slice(pos));
+}
+function renderTranscript(){
+  const box = $("tx");
+  if (!S.segs.length){ box.innerHTML = `<p class="empty">Nog niets gezegd. Druk op <b>Praat</b> (of M), lees de tekst hardop voor en zeg tussendoor wat er in je hoofd gebeurt. Paarse blokken zijn voorlezen, groene blokken zijn hardop denken.</p>`; return; }
+  box.innerHTML = S.segs.map(s => `<div class="seg ${s.kind}"><span class="k">${s.kind === "lezen" ? "voorlezen" : "denken"} · ${s.para === 0 ? "titel" : "al. "+s.para}</span>${s.kind === "lezen" ? esc(s.text) : highlight(s.text)}</div>`).join("");
+  box.scrollTop = box.scrollHeight;
+}
+function renderParas(){
+  const L = lvl();
+  $("txTitle").textContent = L.titel;
+  const items = [{p:0, t:"Kijk vóór het lezen naar de titel. Wat denk je, wat vraag je je af, wat ga je doen?"}].concat(L.alineas.map((a,i) => ({p:i+1, t:a})));
+  $("paras").innerHTML = items.map(it => `<div class="para ${it.p === S.para ? "cur" : it.p < S.para ? "done" : ""} ${it.p === 0 ? "q0" : ""}" data-p="${it.p}" tabindex="0"><span class="pn">${it.p === 0 ? "Start · titel" : "Alinea "+it.p}</span>${esc(it.t)}</div>`).join("");
+}
+function renderCrit(){
+  const L = lvl(), think = S.segs.filter(s => s.kind === "denken").map(s => s.text).join(" ");
+  const items = [["ik","Denk hardop in de ik-vorm"],["strat","Benoem wat je gaat doen (de strategie)"],["hoe","Laat zien hoe: stappen en bewijs uit de tekst"],["doel",L.doelLabel+" op meerdere plekken"],["mon","Laat zien wat je doet als je vastloopt"],["transfer","Zeg waarom het helpt en wanneer zij het doen"]];
+  $("crit").innerHTML = items.map(([k,t]) => `<li class="${think && countCat(k, think, L) ? "hit" : ""}">${t}</li>`).join("");
+}
+function renderInv(){
+  const L = lvl();
+  const generic = ["Ik denk dat … omdat …","Hier staat …, dus …","Dit helpt mij omdat … Dat kun jij ook doen als …"];
+  $("inv").innerHTML = L.starters.concat(generic).map(s => `<button type="button">${esc(s)}</button>`).join("");
+}
+function renderAll(){ $("hudTitle").textContent = `Les ${S.li+1} · ${lvl().naam}`; $("mission").innerHTML = lvl().missie + ` <span class="note">(${lvl().groep})</span>`; renderParas(); renderCrit(); renderInv(); renderTranscript(); drawBoard(); updateHud(); }
+
+function goPara(p){
+  const L = lvl(); p = Math.max(0, Math.min(L.alineas.length, p)); if (p === S.para) return;
+  leaveParaQuestions(); S.para = p; S.readStreak = 0; teacherFace = Math.PI;
+  setTimeout(() => { if (!S.listening && !S.demo) teacherFace = 0; }, 1500);
+  renderParas(); drawBoard(); triggerQuestions();
+  const cur = document.querySelector(".para.cur"); if (cur && window.innerWidth > 860) cur.scrollIntoView({block:"nearest", behavior:"smooth"});
+}
+
+function startLevel(i){
+  stopDemo(); stopMic();
+  S.li = i; S.para = 0; S.segs = []; S.xp = 0; S.t0 = null; S.elapsed = 0; S.readStreak = 0;
+  lvl().vragen.forEach((q,k) => { if (S.qs[k]) clearTimeout(S.qs[k].timer); });
+  students.forEach((s,k) => { s.begrip = 40 + (k*7)%20; s.aandacht = 70; s.hand = false; s.mood = ""; });
+  setupQuestions(); renderAll(); triggerQuestions();
+  $("mStart").hidden = true; $("mRes").hidden = true;
+}
+
+/* timer + aandacht verloopt langzaam */
+setInterval(() => {
+  if (S.t0) { S.elapsed = Math.floor((Date.now() - S.t0)/1000); $("timer").textContent = Math.floor(S.elapsed/60) + ":" + String(S.elapsed%60).padStart(2,"0"); }
+  if (S.t0 && $("mRes").hidden){ students.forEach(s => { s.aandacht = Math.max(0, s.aandacht - (performance.now() - S.lastTalk > 15000 ? 2.5 : 0.6)); }); }
+}, 1000);
+function markStart(){ if (!S.t0) S.t0 = Date.now(); }
+
+/* =====================================================================
+   MICROFOON (dictation-capability, met fallbacks)
+   ===================================================================== */
+let dict = null, webRec = null, langFallback = false;
+function micUi(){
+  $("bMic").classList.toggle("on", S.listening);
+  $("micLbl").textContent = S.listening ? "Stop" : "Praat";
+  $("micState").innerHTML = S.listening ? '<span class="rec"></span>Ik luister' : "Microfoon uit";
+}
+function showPartial(t){ const el = $("partial"); el.hidden = !t; el.textContent = t || ""; if (t) S.lastTalk = performance.now(); }
+function micNote(t, warn){ const n = $("micNote"); n.textContent = t || ""; n.className = "note" + (warn ? " warn" : ""); }
+function onFinalText(text){ showPartial(""); if (text && text.trim()) { markStart(); addSpeech(text); } }
+
+if (window.claude && typeof window.claude.use === "function"){
+  window.claude.use("dictation").then(d => {
+    if (!d) { setupWebSpeech(); return; }
+    dict = d;
+    d.onPartial(({text}) => showPartial(text));
+    d.onFinal(({text}) => onFinalText(text));
+    d.onState(({state, reason}) => {
+      S.listening = state !== "idle"; micUi();
+      if (state === "idle"){ showPartial(""); if (reason && !["stopped","viewer_stopped"].includes(reason)) micNote(reasonText(reason), true); }
+    });
+    micNote("Microfoon klaar. De eerste keer vraagt je browser om toestemming.");
+  }).catch(() => setupWebSpeech());
+} else setupWebSpeech();
+
+function reasonText(r){
+  return ({hidden:"Gestopt omdat het venster verborgen was. Klik op Praat om verder te gaan.", time_limit:"Maximaal 60 minuten per opname. Klik op Praat om verder te gaan.", not_granted:"Microfoon niet toegestaan. Zet hem aan via het Permissions-menu van deze pagina, of typ in het lesboek.", dismissed:"Toestemming gesloten. Klik opnieuw op Praat om het nog eens te proberen.", unavailable: langFallback ? "Spraak is hier niet beschikbaar. Typ wat je zou zeggen." : "Nederlands spraakherkennen lukt hier niet. Klik nog eens op Praat om het in de taal van je browser te proberen.", rate_limited:"Even te druk. Probeer het over een paar seconden opnieuw.", upstream_error:"De microfoon of spraakdienst gaf een fout. Probeer het opnieuw of typ."})[r] || "Er ging iets mis met de microfoon. Typ wat je zou zeggen.";
+}
+function setupWebSpeech(){
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!R){ micNote("Spraakherkenning is in deze weergave niet beschikbaar (werkt in Chrome of Edge en in de Claude-app). Typ wat je zou zeggen: dat werkt precies hetzelfde.", true); return; }
+  webRec = new R(); webRec.lang = "nl-NL"; webRec.continuous = true; webRec.interimResults = true;
+  webRec.onresult = e => { let interim = ""; for (let i = e.resultIndex; i < e.results.length; i++){ const r = e.results[i]; if (r.isFinal) onFinalText(r[0].transcript + "."); else interim += r[0].transcript; } showPartial(interim); };
+  webRec.onend = () => { if (S.listening){ try { webRec.start(); } catch(e){ S.listening = false; micUi(); } } };
+  webRec.onerror = e => { if (e.error === "not-allowed" || e.error === "service-not-allowed"){ S.listening = false; micUi(); micNote("Microfoon niet toegestaan. Typ wat je zou zeggen.", true); } };
+  micNote("Microfoon via de browser (Nederlands).");
+}
+function toggleMic(){
+  if (S.demo) stopDemo();
+  if (dict){
+    if (dict.active()){ dict.stop().catch(()=>{}); return; }
+    markStart(); teacherFace = 0;
+    const p = langFallback ? dict.start() : dict.start({language:"nl"});
+    p.then(() => micNote("")).catch(e => {
+      if (e && e.code === "unavailable" && !langFallback){ langFallback = true; }
+      micNote(reasonText(e && e.code), true);
+    });
+    return;
+  }
+  if (webRec){
+    if (S.listening){ S.listening = false; try { webRec.stop(); } catch(e){} micUi(); showPartial(""); return; }
+    try { webRec.start(); S.listening = true; markStart(); micUi(); } catch(e){ micNote("Microfoon starten lukte niet. Typ wat je zou zeggen.", true); }
+    return;
+  }
+  $("typeIn").focus(); micNote("Geen microfoon in deze weergave. Typ hieronder wat je hardop zou zeggen en druk op Enter.", true);
+}
+function stopMic(){ if (dict && dict.active()) dict.stop().catch(()=>{}); if (webRec && S.listening){ S.listening = false; try { webRec.stop(); } catch(e){} micUi(); } }
+
+/* =====================================================================
+   DEMO: expertmodel afspelen
+   ===================================================================== */
+function demoSteps(){
+  const L = lvl(), steps = [];
+  for (let p = 0; p <= L.alineas.length; p++){
+    steps.push({go:p});
+    steps.push({say: p === 0 ? L.titel + "." : L.alineas[p-1]});
+    L.expert.filter(e => e[0] === p).forEach(e => splitSentences(e[1]).forEach(s => steps.push({say:s})));
+  }
+  return steps;
+}
+function runDemo(){
+  if (S.demo){ stopDemo(); return; }
+  const keep = S.li; startLevel(keep); S.demo = true; markStart();
+  $("bDemo").querySelector(".glyph").textContent = "■";
+  toast("<b>Demo</b> zo modelt een expert deze les");
+  const steps = demoSteps(); let i = 0;
+  const next = () => {
+    if (!S.demo) return;
+    if (i >= steps.length){ S.demo = false; $("bDemo").querySelector(".glyph").textContent = "◆"; showPartial(""); finish(true); return; }
+    const st = steps[i++];
+    if (st.go != null){ goPara(st.go); S.demoTimer = setTimeout(next, 900); return; }
+    showPartial(st.say); S.lastTalk = performance.now();
+    S.demoTimer = setTimeout(() => { onFinalText(st.say); S.demoTimer = setTimeout(next, 350); }, Math.min(4200, 700 + st.say.length * 28));
+  };
+  next();
+}
+function stopDemo(){ if (!S.demo) return; S.demo = false; clearTimeout(S.demoTimer); showPartial(""); $("bDemo").querySelector(".glyph").textContent = "◆"; }
+
+/* =====================================================================
+   AFRONDEN + FEEDBACK
+   ===================================================================== */
+let lastRes = null;
+function starHtml(n){ return [0,1,2].map(i => i < n ? "★" : '<span class="off">★</span>').join(""); }
+function finish(isDemo){
+  stopMic(); leaveParaQuestions();
+  const L = lvl(), res = analyze(S.segs, L, S.qs); lastRes = res;
+  if (!isDemo){ const prev = progress[L.id] || 0; if (res.stars > prev){ progress[L.id] = res.stars; saveProgress(); } }
+  const rows = CAT_KEYS.map(k => {
+    const c = res.cats[k], label = k === "doel" ? "Lesdoel: " + L.doelLabel : CATS[k].label;
+    return `<div>${esc(label)}</div><div class="rb"><i style="width:${c.score/3*100}%"></i></div><div class="sc">${c.score}/3</div>` + (c.quote ? `<div class="q">“${esc(c.quote)}”</div>` : `<div class="q">Niet gehoord.</div>`);
+  }).join("");
+  const secs = S.elapsed;
+  $("resCard").innerHTML = `
+    <h2>${isDemo ? "Demo afgelopen" : "Les afgerond"} <span class="stars">${starHtml(res.stars)}</span></h2>
+    <p>${isDemo ? "Zo scoort het expertmodel. Lees in het lesboek terug wat er gezegd is, en probeer het daarna zelf." : res.stars === 3 ? "Sterk model. Je liet je denken echt horen." : res.stars === 2 ? "Goed op weg. Een paar onderdelen van een sterk model ontbraken nog." : "Je klas zag nog te weinig van wat er in je hoofd gebeurt. Kijk naar de tips en probeer het nog eens."}</p>
+    <div class="kpis">
+      <div class="kpi"><b>${res.pct}%</b>totaalscore</div>
+      <div class="kpi"><b>${Math.round(res.ratio*100)}%</b>van je woorden was hardop denken</div>
+      <div class="kpi"><b>${res.spread}/${res.paraCount}</b>stukken met hardop denken</div>
+      <div class="kpi"><b>${res.q.qDone}/${res.q.qTotal}</b>leerlingvragen benut</div>
+      <div class="kpi"><b>${Math.floor(secs/60)}:${String(secs%60).padStart(2,"0")}</b>tijd</div>
+    </div>
+    <div class="rub">${rows}</div>
+    ${res.tips.length ? res.tips.map(t => `<div class="tip"><b>${esc(t[0])}</b><br>${esc(t[1])}</div>`).join("") : ""}
+    <div class="coach" id="coach"></div>
+    <div class="row">
+      <button class="btn pri" id="rAgain">Opnieuw</button>
+      ${S.li < LEVELS.length-1 ? '<button class="btn" id="rNext">Volgende les</button>' : ""}
+      <button class="btn" id="rCoach" hidden>Vraag Claude om coaching</button>
+      <button class="btn" id="rClose">Terug naar de klas</button>
+    </div>
+    <p class="note">De score komt van een automatische check op kenmerken van goed modelen (ik-vorm, wat/hoe/waarom, vastlopen laten zien, spreiding over de tekst). Hij telt woorden, hij begrijpt ze niet. Gebruik hem als spiegel, niet als oordeel.</p>`;
+  $("mRes").hidden = false;
+  $("rAgain").onclick = () => startLevel(S.li);
+  if ($("rNext")) $("rNext").onclick = () => startLevel(S.li + 1);
+  $("rClose").onclick = () => { $("mRes").hidden = true; };
+  if (sampleFn && !isDemo && S.segs.length){ $("rCoach").hidden = false; $("rCoach").onclick = askCoach; }
+  if (res.stars >= 2) students.forEach(s => burst(s.x, 2.1, s.z, 0xf2c14e, 4));
+  $("rAgain").focus({preventScroll:true}); $("resCard").scrollTop = 0;
+}
+
+let sampleFn = null;
+if (window.claude && typeof window.claude.use === "function") window.claude.use("sample").then(s => { sampleFn = s; }).catch(() => {});
+async function askCoach(){
+  const btn = $("rCoach"), out = $("coach"); btn.disabled = true; out.innerHTML = '<p class="note">Claude leest je transcript…</p>';
+  const L = lvl();
+  const tr = S.segs.map(s => `[${s.para === 0 ? "titel" : "alinea " + s.para}] ${s.kind === "lezen" ? "VOORLEZEN" : "DENKEN"}: ${s.text}`).join("\n");
+  const scores = CAT_KEYS.map(k => `${k === "doel" ? L.doelLabel : CATS[k].label}: ${lastRes.cats[k].score}/3`).join("; ");
+  const prompt = `Je bent een ervaren lerarenopleider leesdidactiek in het Nederlandse basisonderwijs. Een leerkracht oefende in een simulatie het modelen (hardop denken) van een leesstrategie voor ${L.groep}.
+Strategie en lesdoel: ${L.missie.replace(/<[^>]+>/g,"")}
+Tekst — titel: ${L.titel}
+${L.alineas.map((a,i) => `Alinea ${i+1}: ${a}`).join("\n")}
+
+Transcript van de leerkracht (automatisch gelabeld als VOORLEZEN of DENKEN, de labels kunnen fout zijn):
+${tr}
+
+Automatische telling: ${scores}. Aandeel hardop denken: ${Math.round(lastRes.ratio*100)}%.
+
+Beoordeel het modelen zoals een coach dat zou doen: denkt de leerkracht echt hardop in de ik-vorm, maakt hij of zij het wat/hoe/waarom van de strategie zichtbaar, gebruikt hij of zij de tekst als bewijs, laat hij of zij vastlopen en herstellen zien, en blijft het een model (geen uitleg of vragen aan de klas)? Wees eerlijk en specifiek, citeer letterlijk uit het transcript, spreek de leerkracht aan met 'je'.
+Antwoord alleen met JSON in deze vorm:
+{"oordeel":"één zin","sterk":["max 3 punten met citaat"],"verbeter":["max 3 concrete punten"],"herformulering":{"origineel":"letterlijk citaat van een zwakke zin","beter":"dezelfde zin als sterk model"},"volgende":"één oefenopdracht voor de volgende poging"}`;
+  try {
+    const j = await sampleFn.json(prompt, {modelTier:"default"});
+    const li = a => (Array.isArray(a) ? a : []).map(x => `<li>${esc(x)}</li>`).join("");
+    out.innerHTML = `<div class="tip"><b>Coach</b><br>${esc(j.oordeel || "")}</div>
+      ${j.sterk && j.sterk.length ? `<div><b class="pix">Sterk</b><ul>${li(j.sterk)}</ul></div>` : ""}
+      ${j.verbeter && j.verbeter.length ? `<div><b class="pix">Beter</b><ul>${li(j.verbeter)}</ul></div>` : ""}
+      ${j.herformulering && j.herformulering.beter ? `<div class="tip"><b>Zo kan het ook</b><br><span class="org">${esc(j.herformulering.origineel || "")}</span><br><span class="bet">${esc(j.herformulering.beter)}</span></div>` : ""}
+      ${j.volgende ? `<div class="tip"><b>Volgende poging</b><br>${esc(j.volgende)}</div>` : ""}`;
+    btn.hidden = true;
+  } catch(e){
+    const code = e && e.code;
+    out.innerHTML = `<p class="note warn">${code === "not_granted" ? "Coaching is niet toegestaan voor deze pagina." : code === "rate_limited" ? "Even te druk. Probeer het over een minuut opnieuw." : "Coaching lukte niet. Probeer het later opnieuw."}</p>`;
+    if (code === "not_granted") btn.hidden = true; else btn.disabled = false;
+  }
+}
+
+/* =====================================================================
+   KOPPELINGEN
+   ===================================================================== */
+function renderLevelList(){
+  $("lvList").innerHTML = LEVELS.map((L,i) => `<button class="lv" data-i="${i}"><span class="t">${i+1}. ${esc(L.naam)}</span><span class="s">${esc(L.titel)} · ${L.groep}</span><span class="stars">${starHtml(progress[L.id] || 0)}</span></button>`).join("");
+}
+$("lvList").addEventListener("click", e => { const b = e.target.closest(".lv"); if (b) startLevel(+b.dataset.i); });
+$("bLevels").onclick = () => { stopDemo(); stopMic(); renderLevelList(); $("mStart").hidden = false; };
+$("bPrev").onclick = () => goPara(S.para - 1);
+$("bNext").onclick = () => goPara(S.para + 1);
+$("bMic").onclick = toggleMic;
+$("bDemo").onclick = runDemo;
+$("bDone").onclick = () => { stopDemo(); finish(false); };
+$("paras").addEventListener("click", e => { const p = e.target.closest(".para"); if (p) goPara(+p.dataset.p); });
+$("paras").addEventListener("keydown", e => { if (e.key === "Enter"){ const p = e.target.closest(".para"); if (p) goPara(+p.dataset.p); } });
+$("inv").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; const ta = $("typeIn"); ta.value = (ta.value ? ta.value.trimEnd() + " " : "") + b.textContent; ta.focus(); });
+function submitTyped(){ const ta = $("typeIn"), v = ta.value.trim(); if (!v) return; if (S.demo) stopDemo(); markStart(); S.lastTalk = performance.now(); addSpeech(v); ta.value = ""; }
+$("bType").onclick = submitTyped;
+$("typeIn").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); submitTyped(); } });
+document.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("textarea,input")) return;
+  if (!$("mStart").hidden || !$("mRes").hidden){ if (e.key === "Escape" && !$("mRes").hidden) $("mRes").hidden = true; return; }
+  const k = e.key.toLowerCase();
+  if (k === "m"){ e.preventDefault(); toggleMic(); }
+  else if (k === "arrowright"){ e.preventDefault(); goPara(S.para + 1); }
+  else if (k === "arrowleft"){ e.preventDefault(); goPara(S.para - 1); }
+  else if (k === "d") runDemo();
+  else if (k === "k") finish(false);
+  else if (k === "l") $("bLevels").click();
+});
+
+renderLevelList();
+setupQuestions(); renderAll();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawBoard);
+document.fonts && document.fonts.load && Promise.all([document.fonts.load("700 64px 'Pixelify Sans'"), document.fonts.load("40px 'Atkinson Hyperlegible'")]).then(drawBoard).catch(()=>{});
+window.__blokklas = {S, LEVELS, analyze, addSpeech, goPara, startLevel, finish, classify, splitSentences};
+</script>
+</body></html>
